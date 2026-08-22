@@ -64,6 +64,20 @@
         .stat-number { font-size: 20px; font-weight: 700; color: #111; }
         .stat-label { font-size: 11px; color: #9ca3af; text-transform: uppercase; margin-top: 4px; }
         .loading { color: #9ca3af; font-size: 13px; }
+        .chart-container { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; }
+        .chart-pie { flex: 0 0 140px; text-align: center; }
+        .pie-svg { width: 100px; height: 100px; margin: 0 auto 12px; }
+        .pie-percent { font-size: 20px; font-weight: 700; color: #111; margin-bottom: 4px; }
+        .pie-label { font-size: 12px; color: #6b7280; }
+        .chart-legend { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+        .legend-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #374151; }
+        .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+        .activity-list { display: flex; flex-direction: column; gap: 12px; }
+        .activity-item { display: flex; gap: 12px; padding-bottom: 12px; border-bottom: 1px solid #f3f4f6; }
+        .activity-item:last-child { border-bottom: none; }
+        .activity-avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; color: white; font-size: 12px; }
+        .activity-text { font-size: 13px; color: #111; margin-bottom: 2px; }
+        .activity-time { font-size: 12px; color: #9ca3af; }
         @media (max-width: 1400px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } .content-grid { grid-template-columns: 1fr; } .bottom-grid { grid-template-columns: 1fr; } }
         @media (max-width: 768px) { .sidebar { display: none; } .main { margin-left: 0; padding: 16px; } }
     </style>
@@ -101,6 +115,7 @@
                 </div>
             </div>
 
+            <!-- KPI GRID -->
             <div class="kpi-grid">
                 <div class="kpi-card active">
                     <div class="kpi-icon green">✓</div>
@@ -128,6 +143,51 @@
                 </div>
             </div>
 
+            <!-- CHARTS GRID -->
+            <div class="content-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Project progress</h2>
+                    </div>
+                    <div class="card-desc">Task status across all meetings</div>
+                    <div class="chart-container">
+                        <div class="chart-pie">
+                            <svg class="pie-svg" viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="40" fill="none" stroke="#f3f4f6" stroke-width="16"/>
+                                <circle id="pieChart" cx="50" cy="50" r="40" fill="none" stroke="#10b981" stroke-width="16" stroke-dasharray="0 251" stroke-linecap="round" style="transform: rotate(-90deg); transform-origin: 50px 50px;"/>
+                            </svg>
+                            <div class="pie-percent" id="percentComplete">0%</div>
+                            <div class="pie-label">Complete</div>
+                        </div>
+                        <div class="chart-legend">
+                            <div class="legend-item">
+                                <div class="legend-dot" style="background: #10b981;"></div>
+                                <span><strong id="completedCount">0</strong> Completed</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-dot" style="background: #3b82f6;"></div>
+                                <span><strong id="inProgressCount">0</strong> In progress</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-dot" style="background: #fbbf24;"></div>
+                                <span><strong id="pendingCount">0</strong> Pending</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Recent activity</h2>
+                    </div>
+                    <div class="card-desc">Latest updates from your team</div>
+                    <div class="activity-list" id="activityFeed">
+                        <div class="loading">Loading activity...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TEAM & MEETING GRID -->
             <div class="bottom-grid">
                 <div class="card">
                     <div class="card-header">
@@ -161,7 +221,7 @@
             </div>
         </div>
 
-        <!-- TASKS PAGE (PLACEHOLDER) -->
+        <!-- TASKS PAGE -->
         <div id="tasks" class="page">
             <div class="header">
                 <div class="header-left">
@@ -174,7 +234,7 @@
             </div>
         </div>
 
-        <!-- MEETINGS PAGE (PLACEHOLDER) -->
+        <!-- MEETINGS PAGE -->
         <div id="meetings" class="page">
             <div class="header">
                 <div class="header-left">
@@ -189,7 +249,6 @@
     </div>
 
     <script>
-        // ============== GLOBAL DATA & CONFIG ==============
         const SHEET_ID = '1gSHt9LpZXrwbRBR7C1-hBL-mAiFz1liB2BeIc-yClkw';
         const TABS = {
             executive: 740446607,
@@ -198,7 +257,6 @@
             risks: 1029388352
         };
 
-        // Variables reutilizables
         let sheetData = {
             executive: [],
             participants: [],
@@ -212,7 +270,6 @@
             'linear-gradient(135deg, #8b5cf6 0%, #d946ef 100%)'
         ];
 
-        // ============== FETCH DATA ==============
         async function fetchSheetData(tabId) {
             const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=tsv&gid=${tabId}`;
             try {
@@ -239,10 +296,7 @@
             }
         }
 
-        // ============== LOAD ALL DATA ==============
         async function loadAllData() {
-            console.log('Loading data from Google Sheets...');
-            
             const [exec, part, items, risk] = await Promise.all([
                 fetchSheetData(TABS.executive),
                 fetchSheetData(TABS.participants),
@@ -255,19 +309,13 @@
             sheetData.actionItems = items;
             sheetData.risks = risk;
 
-            console.log('Executive:', sheetData.executive);
-            console.log('Participants:', sheetData.participants);
-            console.log('Action Items:', sheetData.actionItems);
-            console.log('Risks:', sheetData.risks);
-
+            console.log('Data loaded:', { exec, part, items, risk });
             renderOverview();
         }
 
-        // ============== RENDER OVERVIEW ==============
         function renderOverview() {
             setGreeting();
 
-            // KPI Stats
             const items = sheetData.actionItems;
             const completed = items.filter(i => (i['Status'] || '').toLowerCase() === 'completed').length;
             const inProgress = items.filter(i => (i['Status'] || '').toLowerCase() === 'in progress').length;
@@ -279,14 +327,40 @@
             document.getElementById('pendingTasks').textContent = pending;
             document.getElementById('taskBadge').textContent = items.length;
 
-            // Team Workload
-            renderTeamWorkload();
+            const percent = items.length > 0 ? Math.round((completed / items.length) * 100) : 0;
+            const circumference = 251;
+            const dasharray = (percent / 100) * circumference;
+            document.getElementById('pieChart').setAttribute('stroke-dasharray', `${dasharray} ${circumference}`);
+            document.getElementById('percentComplete').textContent = percent + '%';
+            document.getElementById('completedCount').textContent = completed;
+            document.getElementById('inProgressCount').textContent = inProgress;
+            document.getElementById('pendingCount').textContent = pending;
 
-            // Last Meeting
+            renderActivity();
+            renderTeamWorkload();
             renderLastMeeting();
         }
 
-        // ============== TEAM WORKLOAD ==============
+        function renderActivity() {
+            const participants = sheetData.participants;
+            let html = '';
+            
+            participants.forEach((p, idx) => {
+                const name = p['Name'] || 'Unknown';
+                html += `
+                    <div class="activity-item">
+                        <div class="activity-avatar" style="background: ${colors[idx % 3]};">${name.charAt(0)}</div>
+                        <div>
+                            <div class="activity-text"><strong>${name}</strong> completed task</div>
+                            <div class="activity-time">Recently</div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            document.getElementById('activityFeed').innerHTML = html || '<div class="loading">No activity</div>';
+        }
+
         function renderTeamWorkload() {
             const participants = sheetData.participants;
             const items = sheetData.actionItems;
@@ -315,7 +389,6 @@
             document.getElementById('teamWorkload').innerHTML = html || '<div class="loading">No participants</div>';
         }
 
-        // ============== LAST MEETING ==============
         function renderLastMeeting() {
             const exec = sheetData.executive[0];
             const items = sheetData.actionItems;
@@ -339,7 +412,6 @@
             document.getElementById('meetingRisks').textContent = riskCount;
         }
 
-        // ============== UTILITIES ==============
         function setGreeting() {
             const hour = new Date().getHours();
             let greeting = 'Good morning';
@@ -356,7 +428,6 @@
             event.target.closest('.nav-item').classList.add('active');
         }
 
-        // ============== INIT ==============
         window.addEventListener('load', loadAllData);
     </script>
 </body>
