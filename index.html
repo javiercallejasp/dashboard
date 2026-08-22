@@ -22,18 +22,8 @@
         .header-left { flex: 1; }
         .header-left .breadcrumb { font-size: 12px; color: #6b7280; margin-bottom: 8px; }
         .header-left h1 { font-size: 28px; color: #111; font-weight: 600; margin-bottom: 4px; }
-        .header-left .description { font-size: 13px; color: #6b7280; }
-        .header-right { display: flex; gap: 12px; }
-        .btn { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.2s; }
-        .btn-secondary { background: white; color: #374151; border: 1px solid #d1d5db; }
-        .btn-secondary:hover { background: #f9fafb; }
-        .btn-primary { background: linear-gradient(135deg, #7c3aed 0%, #6366f1 100%); color: white; }
-        .btn-primary:hover { opacity: 0.9; }
-        .page { display: none; }
-        .page.active { display: block; }
         .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px; }
         .kpi-card { background: white; border-radius: 12px; padding: 20px; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); }
-        .kpi-card.active { border: 1px solid #7c3aed; background: #f8f5ff; }
         .kpi-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; margin-bottom: 8px; }
         .kpi-icon.green { background: #dcfce7; }
         .kpi-icon.blue { background: #dbeafe; }
@@ -43,9 +33,7 @@
         .kpi-desc { font-size: 12px; color: #9ca3af; }
         .content-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px; margin-bottom: 24px; }
         .card { background: white; border-radius: 12px; padding: 24px; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); }
-        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .card h2 { font-size: 16px; font-weight: 600; color: #111; }
-        .card-link { font-size: 12px; color: #7c3aed; cursor: pointer; text-decoration: none; }
+        .card h2 { font-size: 16px; font-weight: 600; color: #111; margin-bottom: 20px; }
         .card-desc { font-size: 12px; color: #6b7280; margin-bottom: 16px; }
         .bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         .team-workload { display: flex; flex-direction: column; gap: 12px; }
@@ -64,6 +52,12 @@
         .stat-number { font-size: 20px; font-weight: 700; color: #111; }
         .stat-label { font-size: 11px; color: #9ca3af; text-transform: uppercase; margin-top: 4px; }
         .loading { color: #9ca3af; font-size: 13px; }
+        .activity-list { display: flex; flex-direction: column; gap: 12px; }
+        .activity-item { display: flex; gap: 12px; padding-bottom: 12px; border-bottom: 1px solid #f3f4f6; }
+        .activity-item:last-child { border-bottom: none; }
+        .activity-avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; color: white; font-size: 12px; }
+        .activity-text { font-size: 13px; color: #111; margin-bottom: 2px; }
+        .activity-time { font-size: 12px; color: #9ca3af; }
         .chart-container { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; }
         .chart-pie { flex: 0 0 140px; text-align: center; }
         .pie-svg { width: 100px; height: 100px; margin: 0 auto 12px; }
@@ -72,12 +66,8 @@
         .chart-legend { flex: 1; display: flex; flex-direction: column; gap: 10px; }
         .legend-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #374151; }
         .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
-        .activity-list { display: flex; flex-direction: column; gap: 12px; }
-        .activity-item { display: flex; gap: 12px; padding-bottom: 12px; border-bottom: 1px solid #f3f4f6; }
-        .activity-item:last-child { border-bottom: none; }
-        .activity-avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; color: white; font-size: 12px; }
-        .activity-text { font-size: 13px; color: #111; margin-bottom: 2px; }
-        .activity-time { font-size: 12px; color: #9ca3af; }
+        .page { display: none; }
+        .page.active { display: block; }
         @media (max-width: 1400px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } .content-grid { grid-template-columns: 1fr; } .bottom-grid { grid-template-columns: 1fr; } }
         @media (max-width: 768px) { .sidebar { display: none; } .main { margin-left: 0; padding: 16px; } }
     </style>
@@ -91,64 +81,46 @@
                 <div class="subtitle">Control Center</div>
             </div>
         </div>
-
         <div class="nav-menu">
-            <div class="nav-item active" onclick="showPage('overview', event)">📊 Overview</div>
-            <div class="nav-item" onclick="showPage('tasks', event)">✓ Tasks <span class="nav-badge" id="taskBadge">0</span></div>
-            <div class="nav-item" onclick="showPage('meetings', event)">📅 Meetings</div>
-        </div>
-
-        <div style="border-top: 1px solid rgba(165, 180, 252, 0.2); padding-top: 16px; margin-top: 16px;">
-            <div style="font-size: 11px; color: #a5b4fc; text-transform: uppercase; margin-bottom: 8px;">System status</div>
-            <div style="font-size: 12px; color: #c7d2fe;">Live connection operational</div>
+            <div class="nav-item active">📊 Overview</div>
         </div>
     </div>
 
     <div class="main">
-        <!-- OVERVIEW PAGE -->
-        <div id="overview" class="page active">
+        <div class="page active">
             <div class="header">
                 <div class="header-left">
                     <div class="breadcrumb">Workspace / Overview</div>
                     <h1 id="greeting">Good morning, Javier</h1>
-                    <div class="description">Here is what is happening with MEETMIND today.</div>
                 </div>
             </div>
 
-            <!-- KPI GRID -->
             <div class="kpi-grid">
-                <div class="kpi-card active">
+                <div class="kpi-card">
                     <div class="kpi-icon green">✓</div>
                     <div class="kpi-label">Total tasks</div>
                     <div class="kpi-number" id="totalTasks">0</div>
-                    <div class="kpi-desc">All action items</div>
                 </div>
                 <div class="kpi-card">
                     <div class="kpi-icon green">✓</div>
                     <div class="kpi-label">Completed</div>
                     <div class="kpi-number" id="completedTasks">0</div>
-                    <div class="kpi-desc">Done tasks</div>
                 </div>
                 <div class="kpi-card">
                     <div class="kpi-icon blue">◎</div>
                     <div class="kpi-label">In progress</div>
                     <div class="kpi-number" id="inProgressTasks">0</div>
-                    <div class="kpi-desc">Active tasks</div>
                 </div>
                 <div class="kpi-card">
                     <div class="kpi-icon orange">!</div>
                     <div class="kpi-label">Pending</div>
                     <div class="kpi-number" id="pendingTasks">0</div>
-                    <div class="kpi-desc">Awaiting action</div>
                 </div>
             </div>
 
-            <!-- CHARTS GRID -->
             <div class="content-grid">
                 <div class="card">
-                    <div class="card-header">
-                        <h2>Project progress</h2>
-                    </div>
+                    <h2>Project progress</h2>
                     <div class="card-desc">Task status across all meetings</div>
                     <div class="chart-container">
                         <div class="chart-pie">
@@ -177,25 +149,20 @@
                 </div>
 
                 <div class="card">
-                    <div class="card-header">
-                        <h2>Recent activity</h2>
-                    </div>
+                    <h2>Recent activity</h2>
                     <div class="card-desc">Latest updates from your team</div>
                     <div class="activity-list" id="activityFeed">
-                        <div class="loading">Loading activity...</div>
+                        <div class="loading">Loading...</div>
                     </div>
                 </div>
             </div>
 
-            <!-- TEAM & MEETING GRID -->
             <div class="bottom-grid">
                 <div class="card">
-                    <div class="card-header">
-                        <h2>Team workload</h2>
-                    </div>
+                    <h2>Team workload</h2>
                     <div class="card-desc">Tasks per participant</div>
                     <div class="team-workload" id="teamWorkload">
-                        <div class="loading">Loading team data...</div>
+                        <div class="loading">Loading...</div>
                     </div>
                 </div>
 
@@ -220,32 +187,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- TASKS PAGE -->
-        <div id="tasks" class="page">
-            <div class="header">
-                <div class="header-left">
-                    <div class="breadcrumb">Workspace / Tasks</div>
-                    <h1>Tasks</h1>
-                </div>
-            </div>
-            <div class="card" style="text-align: center;">
-                <p class="loading">Tasks page coming soon...</p>
-            </div>
-        </div>
-
-        <!-- MEETINGS PAGE -->
-        <div id="meetings" class="page">
-            <div class="header">
-                <div class="header-left">
-                    <div class="breadcrumb">Workspace / Meetings</div>
-                    <h1>Meetings</h1>
-                </div>
-            </div>
-            <div class="card" style="text-align: center;">
-                <p class="loading">Meetings page coming soon...</p>
-            </div>
-        </div>
     </div>
 
     <script>
@@ -257,46 +198,40 @@
             risks: 1029388352
         };
 
-        let sheetData = {
-            executive: [],
-            participants: [],
-            actionItems: [],
-            risks: []
-        };
-
-        const colors = [
-            'linear-gradient(135deg, #d946ef 0%, #0ea5e9 100%)',
-            'linear-gradient(135deg, #06b6d4 0%, #10b981 100%)',
-            'linear-gradient(135deg, #8b5cf6 0%, #d946ef 100%)'
-        ];
+        const colors = ['#d946ef', '#06b6d4', '#8b5cf6'];
 
         async function fetchSheetData(tabId) {
-            const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=tsv&gid=${tabId}`;
+            const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${tabId}`;
             try {
                 const response = await fetch(url);
                 const text = await response.text();
-                const lines = text.split('\n');
-                const headers = lines[0].split('\t');
+                const lines = text.trim().split('\n');
+                const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+                
+                console.log('Headers:', headers);
                 
                 const data = lines.slice(1)
                     .filter(line => line.trim())
                     .map(line => {
-                        const values = line.split('\t');
+                        const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
                         const obj = {};
                         headers.forEach((header, idx) => {
-                            obj[header.trim()] = values[idx] ? values[idx].trim() : '';
+                            obj[header] = values[idx] || '';
                         });
                         return obj;
                     });
                 
+                console.log('Data rows:', data.length, data);
                 return data;
             } catch (error) {
-                console.error('Error fetching sheet:', error);
+                console.error('Error:', error);
                 return [];
             }
         }
 
-        async function loadAllData() {
+        async function init() {
+            console.log('=== INICIANDO CARGA ===');
+            
             const [exec, part, items, risk] = await Promise.all([
                 fetchSheetData(TABS.executive),
                 fetchSheetData(TABS.participants),
@@ -304,19 +239,12 @@
                 fetchSheetData(TABS.risks)
             ]);
 
-            sheetData.executive = exec;
-            sheetData.participants = part;
-            sheetData.actionItems = items;
-            sheetData.risks = risk;
+            console.log('EXECUTIVE:', exec);
+            console.log('PARTICIPANTS:', part);
+            console.log('ACTION ITEMS:', items);
+            console.log('RISKS:', risk);
 
-            console.log('Data loaded:', { exec, part, items, risk });
-            renderOverview();
-        }
-
-        function renderOverview() {
-            setGreeting();
-
-            const items = sheetData.actionItems;
+            // KPI
             const completed = items.filter(i => (i['Status'] || '').toLowerCase() === 'completed').length;
             const inProgress = items.filter(i => (i['Status'] || '').toLowerCase() === 'in progress').length;
             const pending = items.filter(i => (i['Status'] || '').toLowerCase() === 'pending').length;
@@ -325,31 +253,23 @@
             document.getElementById('completedTasks').textContent = completed;
             document.getElementById('inProgressTasks').textContent = inProgress;
             document.getElementById('pendingTasks').textContent = pending;
-            document.getElementById('taskBadge').textContent = items.length;
 
+            // CHART
             const percent = items.length > 0 ? Math.round((completed / items.length) * 100) : 0;
-            const circumference = 251;
-            const dasharray = (percent / 100) * circumference;
-            document.getElementById('pieChart').setAttribute('stroke-dasharray', `${dasharray} ${circumference}`);
+            const dasharray = (percent / 100) * 251;
+            document.getElementById('pieChart').setAttribute('stroke-dasharray', `${dasharray} 251`);
             document.getElementById('percentComplete').textContent = percent + '%';
             document.getElementById('completedCount').textContent = completed;
             document.getElementById('inProgressCount').textContent = inProgress;
             document.getElementById('pendingCount').textContent = pending;
 
-            renderActivity();
-            renderTeamWorkload();
-            renderLastMeeting();
-        }
-
-        function renderActivity() {
-            const participants = sheetData.participants;
-            let html = '';
-            
-            participants.forEach((p, idx) => {
-                const name = p['Name'] || 'Unknown';
-                html += `
+            // ACTIVITY
+            let actHtml = '';
+            part.forEach((p, i) => {
+                const name = p['Name'] || p.Name || 'Unknown';
+                actHtml += `
                     <div class="activity-item">
-                        <div class="activity-avatar" style="background: ${colors[idx % 3]};">${name.charAt(0)}</div>
+                        <div class="activity-avatar" style="background: ${colors[i % 3]};">${name.charAt(0)}</div>
                         <div>
                             <div class="activity-text"><strong>${name}</strong> completed task</div>
                             <div class="activity-time">Recently</div>
@@ -357,78 +277,45 @@
                     </div>
                 `;
             });
+            document.getElementById('activityFeed').innerHTML = actHtml || '<div class="loading">No data</div>';
 
-            document.getElementById('activityFeed').innerHTML = html || '<div class="loading">No activity</div>';
-        }
+            // TEAM
+            let teamHtml = '';
+            part.forEach((person, i) => {
+                const name = person['Name'] || person.Name || 'Unknown';
+                const personTasks = items.filter(it => it['Responsible'] === name);
+                const done = personTasks.filter(it => (it['Status'] || '').toLowerCase() === 'completed').length;
+                const pct = personTasks.length > 0 ? Math.round((done / personTasks.length) * 100) : 0;
 
-        function renderTeamWorkload() {
-            const participants = sheetData.participants;
-            const items = sheetData.actionItems;
-
-            let html = '';
-            participants.forEach((person, idx) => {
-                const name = person['Name'] || 'Unknown';
-                const personTasks = items.filter(i => i['Responsible'] === name);
-                const completed = personTasks.filter(i => (i['Status'] || '').toLowerCase() === 'completed').length;
-                const percent = personTasks.length > 0 ? Math.round((completed / personTasks.length) * 100) : 0;
-
-                html += `
+                teamHtml += `
                     <div class="workload-item">
-                        <div class="workload-avatar" style="background: ${colors[idx % 3]};">${name.charAt(0)}</div>
+                        <div class="workload-avatar" style="background: ${colors[i % 3]};">${name.charAt(0)}</div>
                         <div class="workload-info">
                             <div class="workload-name">${name}</div>
-                            <div class="workload-tasks">${personTasks.length} tasks · ${completed} done</div>
+                            <div class="workload-tasks">${personTasks.length} tasks · ${done} done</div>
                         </div>
                         <div class="workload-progress">
-                            <div class="workload-progress-bar" style="width: ${percent}%;"></div>
+                            <div class="workload-progress-bar" style="width: ${pct}%;"></div>
                         </div>
                     </div>
                 `;
             });
+            document.getElementById('teamWorkload').innerHTML = teamHtml || '<div class="loading">No data</div>';
 
-            document.getElementById('teamWorkload').innerHTML = html || '<div class="loading">No participants</div>';
-        }
-
-        function renderLastMeeting() {
-            const exec = sheetData.executive[0];
-            const items = sheetData.actionItems;
-            const risks = sheetData.risks;
-
-            if (!exec) {
-                document.getElementById('meetingTitle').textContent = 'No meeting data';
-                return;
+            // MEETING
+            if (exec.length > 0) {
+                const e = exec[0];
+                document.getElementById('meetingTitle').textContent = e['Meeting Title'] || e.Meeting Title || 'Meeting';
+                document.getElementById('meetingMeta').textContent = (e['Executive Summary'] || e.Executive Summary || '').substring(0, 100) + '...';
+                document.getElementById('meetingTasks').textContent = items.length;
+                document.getElementById('meetingDecisions').textContent = (e['Key Decisions'] || e.Key Decisions || '').length > 0 ? 1 : 0;
+                document.getElementById('meetingRisks').textContent = risk.length;
             }
 
-            const title = exec['Meeting Title'] || 'Untitled Meeting';
-            const summary = (exec['Executive Summary'] || '').substring(0, 100) + '...';
-            const taskCount = items.length;
-            const decisionCount = (exec['Key Decisions'] || '').length > 0 ? 1 : 0;
-            const riskCount = risks.length;
-
-            document.getElementById('meetingTitle').textContent = title;
-            document.getElementById('meetingMeta').textContent = summary;
-            document.getElementById('meetingTasks').textContent = taskCount;
-            document.getElementById('meetingDecisions').textContent = decisionCount;
-            document.getElementById('meetingRisks').textContent = riskCount;
+            console.log('=== LISTO ===');
         }
 
-        function setGreeting() {
-            const hour = new Date().getHours();
-            let greeting = 'Good morning';
-            if (hour >= 12 && hour < 18) greeting = 'Good afternoon';
-            if (hour >= 18) greeting = 'Good evening';
-            document.getElementById('greeting').textContent = `${greeting}, Javier`;
-        }
-
-        function showPage(pageId, event) {
-            if (event) event.preventDefault();
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            document.getElementById(pageId).classList.add('active');
-            event.target.closest('.nav-item').classList.add('active');
-        }
-
-        window.addEventListener('load', loadAllData);
+        window.addEventListener('load', init);
     </script>
 </body>
 </html>
