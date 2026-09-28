@@ -341,6 +341,10 @@ table.data th{color:var(--text-3);font-size:11.5px;text-transform:uppercase;lett
 .meet-chip{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:99px;background:var(--brand-soft);color:var(--brand);font-size:12.5px;font-weight:700}
 .btn-danger{background:var(--critical-soft);color:var(--critical);border:1px solid transparent}
 .btn-danger:hover{border-color:var(--critical)}
+.danger-zone{margin-top:18px;padding-top:16px;border-top:1px dashed var(--border)}
+.danger-zone h4{margin:0 0 6px;color:var(--critical);font-size:14px}
+.danger-zone .sub{margin-bottom:10px}
+.btn-danger:disabled{opacity:.45;cursor:not-allowed}
 .m-actions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
 .meeting.selected{outline:3px solid var(--brand);outline-offset:-3px}
 .q-card{display:flex;gap:14px;padding:16px;border-radius:16px;border:1px solid var(--border);background:var(--surface);margin-bottom:10px;animation:pop .4s both;border-left:5px solid var(--warning)}
@@ -431,7 +435,7 @@ table.data th{color:var(--text-3);font-size:11.5px;text-transform:uppercase;lett
       <div class="meet-select"><label for="meetingSel">🎙️ Meeting</label><select id="meetingSel" aria-label="Choose which meeting the dashboard shows"></select></div>
       <span class="meet-chip" id="meetScope">All meetings</span>
       <button class="btn btn-ghost btn-sm" id="historyBtn" hidden>🕘 Show history</button>
-      <button class="btn btn-danger btn-sm" id="resetBtn" style="margin-left:auto">🧹 Reset dashboard</button>
+      <button class="btn btn-danger btn-sm" id="resetBtn" style="margin-left:auto">🧹 Reset / delete data</button>
     </div>
 
     <!-- OVERVIEW -->
@@ -590,6 +594,12 @@ table.data th{color:var(--text-3);font-size:11.5px;text-transform:uppercase;lett
     <div class="sub">The dashboard will start clean and only show meetings analyzed from now on.</div>
     <div class="note">Nothing is deleted: every row stays in Google Sheets. Use <b>Show history</b> at any time to bring the previous meetings back.</div>
     <div class="modal-actions"><button type="button" class="btn btn-ghost" id="rCancel">Cancel</button><button type="button" class="btn btn-primary" id="rOk">Yes, reset</button></div>
+    <div class="danger-zone">
+      <h4>🗑️ Delete all data</h4>
+      <div class="sub">Permanently erases every row in Google Sheets (Executive Summary, Participants, Action Items, Risks &amp; Blockers, Open Questions). Header rows are kept so new meetings keep working. Recover only through Google Sheets › Version history.</div>
+      <div class="field"><label for="delConfirm">Type <b>DELETE ALL</b> to confirm</label><input id="delConfirm" autocomplete="off" placeholder="DELETE ALL"></div>
+      <button type="button" class="btn btn-danger" id="delAllBtn" disabled>Delete all data</button>
+    </div>
   </div>
 </div>
 
@@ -1250,32 +1260,51 @@ function readFile(f) { const r = new FileReader(); r.onload = () => { ta.value =
 $('#analyzeBtn').onclick = async () => {
   const text = ta.value.trim();
   if (text.length < 40) { toast('Paste a longer transcript first', '✍️'); sfx.error(); return; }
-  const btn = $('#analyzeBtn'), steps = $$('#steps .step'); btn.disabled = true; btn.textContent = '⏳ Sending…';
+  const btn = $('#analyzeBtn'), steps = $$('#steps .step'); btn.disabled = true; btn.textContent = '⏳ Analyzing… (up to 2 min)';
   steps.forEach(s => s.className = 'step'); steps[0].classList.add('run');
-  try {
-    await callN8n('dashboard-transcript', { transcript: text });
-    steps[0].className = 'step done'; steps[1].classList.add('run'); sfx.success();
-    toast('Transcript received! Gemini is analyzing it…', '🧠', 4500);
-    const beforeIds = new Set(state.all.meetings.map(m => m.id)); const before = state.all.tasks.length; let tries = 0;
-    const tick = async () => {
-      tries++;
-      if (tries === 2) { steps[1].className = 'step done'; steps[2].classList.add('run'); }
+  const reset = () => { btn.disabled = false; btn.textContent = '🚀 Analyze with MeetMind'; };
+  const advance = i => { steps.forEach((s, k) => s.className = 'step' + (k < i ? ' done' : k === i ? ' run' : '')); };
+  const beforeIds = new Set(state.all.meetings.map(m => m.id)); const before = state.all.tasks.length;
+  const timers = [setTimeout(() => advance(1), 1500), setTimeout(() => advance(2), 20000), setTimeout(() => advance(3), 35000)];
+  const finish = async (res) => {
+    timers.forEach(clearTimeout); advance(4);
+    // Sheets' CSV export can lag a few seconds behind the write
+    let fresh = null;
+    for (let i = 0; i < 6 && !fresh; i++) {
       await load(true);
+      fresh = state.all.meetings.find(m => (res && res.meeting_id ? m.id === res.meeting_id : !beforeIds.has(m.id)) && m.id !== MANUAL && m.id !== LEGACY);
+      if (!fresh) await new Promise(r => setTimeout(r, 4000));
+    }
+    steps.forEach(s => s.className = 'step done');
+    if (fresh) {
+      state.hidden = state.hidden.filter(id => id !== fresh.id); store.set('hidden', state.hidden);
+      state.meeting = fresh.id; store.set('meeting', fresh.id); render();
+      confetti(); sfx.success();
+      toast(`“${title(fresh.title)}” analyzed — ${state.all.tasks.filter(t => t.meeting === fresh.id).length} tasks, ${fresh.people.length} participants 🎉`, '🎉', 6500);
+      ta.value = ''; ta.dispatchEvent(new Event('input')); setTimeout(() => go('overview'), 1200);
+    } else if (res && res.ok) {
+      toast(`Analyzed (${res.tasks} tasks, ${res.participants} people) — Sheets is still syncing, press 🔄 in a moment`, '⏳', 7000);
+    } else toast('Still processing — press 🔄 in a minute', '⏳', 6000);
+    reset();
+  };
+  try {
+    const raw = await callN8n('dashboard-transcript', { transcript: text });
+    let res = null; try { res = JSON.parse(raw); } catch { /* 'sent' = response not readable */ }
+    if (res && res.ok) return finish(res);
+    // Response not readable (old tunnel / CORS): fall back to polling for the new meeting
+    let tries = 0;
+    const tick = async () => {
+      tries++; await load(true);
       const fresh = state.all.meetings.find(m => !beforeIds.has(m.id) && m.id !== MANUAL && m.id !== LEGACY);
-      if (fresh || state.all.tasks.length > before || tries >= 12) {
-        steps.forEach(s => s.className = 'step done');
-        if (fresh) { state.meeting = fresh.id; store.set('meeting', fresh.id); render(); }
-        if (fresh || state.all.tasks.length > before) { confetti(); sfx.success(); toast(fresh ? `“${title(fresh.title)}” analyzed — ${state.all.tasks.filter(t => t.meeting === fresh.id).length} tasks, ${fresh.people.length} participants 🎉` : 'New tasks extracted!', '🎉', 6000); ta.value = ''; ta.dispatchEvent(new Event('input')); if (fresh) setTimeout(() => go('overview'), 1200); }
-        else toast('Still processing — check the board in a minute', '⏳', 5000);
-        btn.disabled = false; btn.textContent = '🚀 Analyze with MeetMind'; return;
-      }
-      if (tries === 3) { steps[2].className = 'step done'; steps[3].classList.add('run'); }
+      if (fresh || state.all.tasks.length > before || tries >= 12) return finish(null);
       setTimeout(tick, 10000);
     };
     setTimeout(tick, 10000);
   } catch (e) {
-    steps[0].className = 'step'; sfx.error(); toast('Could not reach n8n: ' + e.message, '⚠️', 5000);
-    btn.disabled = false; btn.textContent = '🚀 Analyze with MeetMind';
+    timers.forEach(clearTimeout); steps.forEach(s => s.className = 'step'); sfx.error();
+    const busy = /HTTP 5\d\d/.test(e.message);
+    toast(busy ? 'Analysis failed — Gemini is overloaded right now. Wait a minute and press Analyze again (your text is still here).' : 'Could not reach n8n: ' + e.message, '⚠️', 8000);
+    reset();
   }
 };
 
@@ -1322,6 +1351,20 @@ $('#rOk').onclick = () => {
   state.hidden = [...new Set([...state.hidden, ...state.all.meetings.map(m => m.id)])]; store.set('hidden', state.hidden);
   state.meeting = 'ALL'; store.set('meeting', 'ALL'); $('#resetModal').classList.remove('show');
   render(); sfx.whoosh(); toast('Dashboard reset — Google Sheets data is untouched', '🧹', 4500);
+};
+$('#delConfirm').addEventListener('input', e => { $('#delAllBtn').disabled = e.target.value.trim() !== 'DELETE ALL'; });
+$('#delAllBtn').onclick = async () => {
+  const b = $('#delAllBtn'); if ($('#delConfirm').value.trim() !== 'DELETE ALL') return;
+  b.disabled = true; b.textContent = '⏳ Deleting…';
+  try {
+    const raw = await callN8n('dashboard-clear-data', { confirm: 'DELETE ALL' });
+    let ok = raw === 'sent'; try { ok = ok || JSON.parse(raw).ok; } catch {}
+    if (!ok) throw new Error('unexpected response');
+    state.hidden = []; store.set('hidden', []); state.meeting = 'ALL'; store.set('meeting', 'ALL');
+    $('#resetModal').classList.remove('show'); $('#delConfirm').value = '';
+    await load(true); render(); sfx.whoosh(); toast('All data deleted — Google Sheets is empty and ready for new meetings', '🗑️', 6000);
+  } catch (e) { sfx.error(); toast('Could not delete: ' + e.message, '⚠️', 6000); }
+  b.textContent = 'Delete all data'; b.disabled = $('#delConfirm').value.trim() !== 'DELETE ALL';
 };
 $('#historyBtn').onclick = () => { state.hidden = []; store.set('hidden', []); render(); sfx.pop(); toast('History restored', '🕘'); };
 $('#q').addEventListener('input', e => { state.q = e.target.value; renderBoard(); });
