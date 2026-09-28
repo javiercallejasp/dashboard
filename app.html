@@ -246,7 +246,45 @@ select.sel{padding:10px 12px;border-radius:12px;border:1px solid var(--border);b
 .team-stats small{font-size:11px;color:var(--text-3);font-weight:700;text-transform:uppercase;letter-spacing:.05em}
 .progress{height:8px;border-radius:99px;background:var(--surface-2);overflow:hidden;margin-bottom:14px}
 .progress i{display:block;height:100%;background:var(--good);border-radius:99px;transition:width 1s cubic-bezier(.2,.8,.2,1)}
-.contrib{font-size:13px;color:var(--text-2);line-height:1.5;margin-bottom:14px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.contrib{font-size:13px;color:var(--text-2);line-height:1.55;margin-bottom:14px;max-height:118px;overflow:auto;padding-right:6px;scrollbar-width:thin;overscroll-behavior:contain}
+.contrib:empty{display:none}
+.team-card.unassigned{border:2px dashed var(--border);background:color-mix(in srgb,var(--surface) 80%,transparent)}
+.ua-list{display:flex;flex-direction:column;gap:8px;margin:14px 0 4px;max-height:260px;overflow:auto}
+.ua-item{display:flex;gap:10px;align-items:center;padding:10px 12px;border-radius:12px;background:var(--surface-2);font-size:13px}
+.ua-item span{flex:1;min-width:0}
+.avatar.ua{background:repeating-linear-gradient(45deg,#9ca3af,#9ca3af 4px,#b8bcc6 4px,#b8bcc6 8px)!important;color:#fff}
+/* transcript */
+.tx-body{white-space:pre-wrap;font-size:13.5px;line-height:1.65;max-height:60vh;overflow:auto;background:var(--surface-2);border-radius:14px;padding:16px;margin-top:12px}
+.tx-body b{color:var(--brand)}
+.tx-body mark{background:#fde68a;color:#1d1733;border-radius:4px;padding:0 2px}
+.modal.wide{max-width:860px}
+/* chat */
+.ask-fab{position:fixed;right:24px;bottom:24px;z-index:90;border:0;border-radius:99px;padding:14px 20px;background:var(--grad);color:#fff;font-weight:800;font-size:14.5px;box-shadow:0 14px 30px -10px rgba(192,38,211,.8);display:flex;gap:8px;align-items:center;transition:transform .2s}
+.ask-fab:hover{transform:translateY(-3px) scale(1.03)}
+.ask-panel{position:fixed;right:24px;bottom:24px;z-index:95;width:420px;max-width:calc(100vw - 32px);height:600px;max-height:calc(100vh - 48px);background:var(--surface);border:1px solid var(--border);border-radius:24px;box-shadow:var(--shadow-lg);display:none;flex-direction:column;overflow:hidden;animation:modalIn .35s cubic-bezier(.2,.9,.3,1.3)}
+.ask-panel.show{display:flex}
+.ask-head{padding:16px 18px;background:var(--grad);color:#fff;display:flex;align-items:center;gap:10px}
+.ask-head b{font-size:15.5px;display:block}
+.ask-head small{opacity:.9;font-size:12px}
+.ask-head button{margin-left:auto;background:rgba(255,255,255,.2);border:0;color:#fff;width:32px;height:32px;border-radius:10px;font-size:16px}
+.ask-msgs{flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:10px}
+.msg{max-width:88%;padding:10px 14px;border-radius:16px;font-size:13.8px;line-height:1.55;animation:pop .3s both;overflow-wrap:anywhere}
+.msg.user{align-self:flex-end;background:var(--brand);color:#fff;border-bottom-right-radius:6px}
+.msg.bot{align-self:flex-start;background:var(--surface-2);border-bottom-left-radius:6px}
+.msg.bot ul{padding-left:18px;margin:4px 0}
+.msg.typing{color:var(--text-3)}
+.msg.typing i{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--text-3);margin:0 2px;animation:blink 1.2s infinite}
+.msg.typing i:nth-child(2){animation-delay:.2s}.msg.typing i:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,80%,100%{opacity:.2}40%{opacity:1}}
+.ask-chips{display:flex;gap:6px;flex-wrap:wrap;padding:0 16px 10px}
+.ask-chips button{border:1px solid var(--border);background:var(--surface);border-radius:99px;padding:6px 11px;font-size:12px;font-weight:600;color:var(--text-2)}
+.ask-chips button:hover{border-color:var(--brand);color:var(--brand)}
+.ask-form{display:flex;gap:8px;padding:12px;border-top:1px solid var(--border)}
+.ask-form textarea{flex:1;resize:none;border:1px solid var(--border);background:var(--surface-2);border-radius:14px;padding:10px 12px;font-size:13.5px;outline:none;max-height:120px}
+.ask-form textarea:focus{border-color:var(--brand)}
+.ask-form button{border:0;border-radius:14px;width:46px;background:var(--grad);color:#fff;font-size:18px}
+.ask-scope{font-size:11.5px;color:var(--text-3);padding:8px 16px 0}
+[hidden]{display:none!important}
 .team-actions{display:flex;gap:8px;flex-wrap:wrap}
 .risk{display:flex;gap:14px;padding:16px;border-radius:16px;border:1px solid var(--border);background:var(--surface);margin-bottom:10px;animation:pop .4s both;border-left:5px solid var(--serious)}
 .risk.high{border-left-color:var(--critical)}
@@ -332,6 +370,7 @@ table.data th{color:var(--text-3);font-size:11.5px;text-transform:uppercase;lett
   .top-actions .btn-primary .lbl{display:none}
   .toasts{left:16px;right:16px;bottom:84px;align-items:stretch}
   .meet-select{width:100%}.meet-select select{flex:1;max-width:none}
+  .ask-fab{bottom:84px;right:16px;padding:12px 16px}.ask-panel{right:8px;left:8px;bottom:8px;width:auto;height:calc(100vh - 16px)}
 }
 @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -542,6 +581,43 @@ table.data th{color:var(--text-3);font-size:11.5px;text-transform:uppercase;lett
   </div>
 </div>
 
+<div class="overlay" id="assignModal" role="dialog" aria-modal="true" aria-labelledby="aTitle">
+  <form class="modal" id="assignForm">
+    <h3 id="aTitle">Assign task</h3>
+    <div class="sub" id="aTask">—</div>
+    <div class="field"><label for="aTo">Assign to</label><select id="aTo" required></select></div>
+    <div id="aNewWrap" hidden>
+      <div class="field"><label for="aName">Full name</label><input id="aName" maxlength="60" placeholder="e.g. Ana Rojas"></div>
+    </div>
+    <div class="field"><label for="aEmail">Email <span id="aEmailHint" style="font-weight:500;color:var(--text-3)"></span></label><input id="aEmail" type="email" maxlength="120" placeholder="name@company.com"></div>
+    <div class="field"><label for="aNote">Note for them (optional)</label><input id="aNote" maxlength="200" placeholder="Anything they should know?"></div>
+    <div class="note">They get an email with the task, and a message is posted in Slack #general. The Action Items sheet is updated.</div>
+    <div class="modal-actions"><button type="button" class="btn btn-ghost" id="aCancel">Cancel</button><button type="submit" class="btn btn-primary" id="aSave">Assign task</button></div>
+  </form>
+</div>
+
+<div class="overlay" id="txModal" role="dialog" aria-modal="true" aria-labelledby="txTitle">
+  <div class="modal wide">
+    <div style="display:flex;gap:10px;align-items:flex-start"><div style="flex:1"><h3 id="txTitle">Transcript</h3><div class="sub" id="txSub"></div></div><button class="btn btn-ghost btn-sm" id="txClose">Close ✕</button></div>
+    <div class="search" style="margin-top:6px"><input id="txQ" placeholder="Search the transcript…" aria-label="Search the transcript"></div>
+    <div class="tx-body" id="txBody"></div>
+  </div>
+</div>
+
+<button class="ask-fab" id="askFab" aria-label="Ask MeetMind">✨ Ask MeetMind</button>
+<section class="ask-panel" id="askPanel" aria-label="Ask MeetMind chat">
+  <div class="ask-head"><span style="font-size:22px">🧠</span><div><b>Ask MeetMind</b><small>Answers only from your meeting data</small></div><button id="askClose" aria-label="Close chat">✕</button></div>
+  <div class="ask-scope" id="askScope"></div>
+  <div class="ask-msgs" id="askMsgs"></div>
+  <div class="ask-chips" id="askChips">
+    <button data-q="What tasks does each person have?">📋 Tasks per person</button>
+    <button data-q="What decisions were made?">✅ Decisions</button>
+    <button data-q="Which tasks are unassigned?">🙋 Unassigned</button>
+    <button data-q="What risks or blockers were mentioned?">⚠️ Blockers</button>
+  </div>
+  <form class="ask-form" id="askForm"><textarea id="askIn" rows="1" placeholder="Ask about this meeting…" aria-label="Your question"></textarea><button type="submit" aria-label="Send">➤</button></form>
+</section>
+
 <div class="toasts" id="toasts" aria-live="polite"></div>
 
 <script>
@@ -564,7 +640,8 @@ const store = {
   set(k, v) { try { localStorage.setItem('mm_' + k, JSON.stringify(v)); } catch {} }
 };
 const state = { tasks: [], people: [], meetings: [], risks: [], all: { tasks: [], people: [], meetings: [], risks: [] }, meeting: store.get('meeting', 'ALL'), hidden: store.get('hidden', []), owner: '', q: '', prio: '', base: store.get('base', DEFAULT_BASE), sound: store.get('sound', true), timer: null, lastSync: null };
-const LEGACY = 'LEGACY', MANUAL = 'MANUAL';
+const LEGACY = 'LEGACY', MANUAL = 'MANUAL', UA = 'UNASSIGNED';
+const ownerOf = v => (isMissing(v) || /^(not assigned|unassigned|none|tbd)$/i.test(clean(v))) ? UA : clean(v);
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -619,7 +696,7 @@ function personColor(name) {
   if (!colorMap.has(k)) colorMap.set(k, PERSON_SLOTS[colorMap.size % PERSON_SLOTS.length]);
   return colorMap.get(k);
 }
-const avatar = (name, cls = '') => `<span class="avatar ${cls}" style="background:${personColor(name)}" aria-hidden="true">${esc(clean(name).charAt(0).toUpperCase() || '?')}</span>`;
+const avatar = (name, cls = '') => clean(name).toUpperCase() === UA ? `<span class="avatar ua ${cls}" aria-hidden="true">?</span>` : `<span class="avatar ${cls}" style="background:${personColor(name)}" aria-hidden="true">${esc(clean(name).charAt(0).toUpperCase() || '?')}</span>`;
 
 /* ---------- sound (WebAudio, no files) ---------- */
 let actx;
@@ -708,13 +785,13 @@ async function load(silent = false) {
     const mid = r => clean(r['Meeting ID']) || LEGACY;
     const A = state.all;
     A.people = pa.filter(p => p.Name).map(p => ({ name: p.Name, role: p.Role, contrib: p['Key Contributions'], email: p.Email || p.email || '', meeting: mid(p) }));
-    A.tasks = ac.filter(t => t.Task).map((t, i) => ({ id: i, task: t.Task, owner: t.Responsible || 'Not assigned', deadline: t.Deadline, prioRaw: t.Priority, prio: normPrio(t.Priority), status: normStatus(t.Status), meeting: mid(t) }));
+    A.tasks = ac.filter(t => t.Task).map((t, i) => ({ id: i, task: t.Task, owner: ownerOf(t.Responsible), deadline: t.Deadline, prioRaw: t.Priority, prio: normPrio(t.Priority), status: normStatus(t.Status), meeting: mid(t) }));
     A.risks = ri.filter(r => r.Description && !/^n\/a$/i.test(r.Description)).map(r => ({ type: r.Type || 'Risk', desc: r.Description, impact: r.Impact || '', mitigation: r.Mitigation || '', meeting: mid(r) }));
     const byId = new Map();
     ex.filter(m => m['Meeting Title'] || m['Executive Summary']).forEach(m => {
       const id = mid(m), prev = byId.get(id);
       const people = (m.Participants || '').split(/,|\|/).map(clean).filter(Boolean);
-      const rec = { id, title: m['Meeting Title'] || 'Untitled meeting', date: m.Date, summary: m['Executive Summary'], people, decisions: splitList(m['Key Decisions']), questions: splitList(m['Open Questions']) };
+      const rec = { id, title: m['Meeting Title'] || 'Untitled meeting', date: m.Date, summary: m['Executive Summary'], people, decisions: splitList(m['Key Decisions']), questions: splitList(m['Open Questions']), transcript: m.Transcript || '' };
       if (prev && id === LEGACY) { prev.people = [...new Set([...prev.people, ...people])]; prev.decisions.push(...rec.decisions); prev.questions.push(...rec.questions); if (!prev.title || /untitled/i.test(prev.title)) Object.assign(prev, { title: rec.title, date: rec.date, summary: rec.summary }); }
       else byId.set(id, rec);
     });
@@ -752,7 +829,7 @@ function computeView() {
     else { if (isMissing(cur.role) && !isMissing(p.role)) cur.role = p.role; if (p.contrib) cur.contrib = p.contrib; if (p.email) cur.email = p.email; }
   });
   // owners of visible tasks always appear on the team page
-  state.tasks.forEach(t => { const k = clean(t.owner).toUpperCase(); if (!isMissing(t.owner) && !merged.has(k)) merged.set(k, { name: t.owner, role: '', contrib: '', email: '' }); });
+  state.tasks.forEach(t => { const k = clean(t.owner).toUpperCase(); if (k !== UA && !isMissing(t.owner) && !merged.has(k)) merged.set(k, { name: t.owner, role: '', contrib: '', email: '' }); });
   state.people = [...merged.values()];
 }
 function fillMeetings() {
@@ -857,8 +934,9 @@ function cardHTML(t, i) {
     <div class="t-foot">${avatar(t.owner)}<span class="grow">${esc(title(t.owner))}</span>
       <span class="t-actions">
         ${t.status !== 'Completed' ? `<button class="mini" data-act="done" data-tip="Mark as completed" aria-label="Mark completed">✅</button>` : ''}
+        <button class="mini" data-act="assign" data-tip="${t.owner === UA ? 'Assign to someone' : 'Transfer to someone else'}" aria-label="Assign or transfer">${t.owner === UA ? '🙋' : '🔁'}</button>
         <button class="mini" data-act="edit" data-tip="Edit task" aria-label="Edit task">✏️</button>
-        <button class="mini" data-act="slack" data-tip="Remind on Slack" aria-label="Remind on Slack">💬</button>
+        ${t.owner === UA ? '' : '<button class="mini" data-act="slack" data-tip="Remind on Slack" aria-label="Remind on Slack">💬</button>'}
       </span></div></article>`;
 }
 async function changeStatus(id, newStatus, el) {
@@ -894,7 +972,7 @@ function renderMeetings() {
           <div class="m-box"><h4>❓ Open questions</h4>${m.questions.length ? `<ul>${m.questions.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '<span class="sub">No open questions 🎉</span>'}</div>
         </div>
         <div class="people">${m.people.map(p => `<span data-tip="${esc(title(p))}">${avatar(p)}</span>`).join('')}</div>
-        <div class="m-actions">${m.id === state.meeting ? '<span class="meet-chip">📍 Currently selected</span><button class="btn btn-ghost btn-sm" data-meeting="ALL">Show all meetings</button>' : `<button class="btn btn-primary btn-sm" data-meeting="${esc(m.id)}">📊 View this meeting</button>`}<span class="sub" style="align-self:center">${state.all.tasks.filter(t => t.meeting === m.id).length} tasks · ${m.people.length} participants</span></div>
+        <div class="m-actions">${m.id === state.meeting ? '<span class="meet-chip">📍 Currently selected</span><button class="btn btn-ghost btn-sm" data-meeting="ALL">Show all meetings</button>' : `<button class="btn btn-primary btn-sm" data-meeting="${esc(m.id)}">📊 View this meeting</button>`}<button class="btn btn-ghost btn-sm" data-transcript="${esc(m.id)}">📄 Transcript</button><span class="sub" style="align-self:center">${state.all.tasks.filter(t => t.meeting === m.id).length} tasks · ${m.people.length} participants</span></div>
       </div></div>`;
   }).join('') || '<div class="card empty"><span class="e-ico">🎙️</span>No meetings analyzed yet.</div>';
 }
@@ -912,7 +990,13 @@ function renderTeam() {
         <button class="btn btn-ghost btn-sm" data-remind="slack" data-who="${esc(p.name)}">💬 Slack reminder</button>
         <button class="btn btn-ghost btn-sm" data-remind="email" data-who="${esc(p.name)}" ${p.email ? '' : 'data-tip="No email in the Participants sheet — it will go to the default address"'}>✉️ Email reminder</button>
       </div></div>`;
-  }).join('') || '<div class="card empty">No participants yet.</div>';
+  }).join('') + (() => {
+    const ua = state.tasks.filter(t => t.owner === UA && t.status !== 'Completed');
+    if (!ua.length) return '';
+    return `<div class="card team-card unassigned" style="animation:pop .4s both">
+      <div class="team-head">${avatar(UA, 'lg')}<div><h3>Unassigned</h3><div class="sub">${ua.length} task${ua.length === 1 ? '' : 's'} without an owner</div></div></div>
+      <div class="ua-list">${ua.map(t => `<div class="ua-item"><span>${esc(t.task)}</span><button class="btn btn-primary btn-sm" data-assign="${t.id}">🙋 Assign</button></div>`).join('')}</div></div>`;
+  })() || (state.people.length ? '' : '<div class="card empty">No participants yet.</div>');
   setTimeout(() => $$('#teamGrid .progress i').forEach(b => b.style.width = b.dataset.w + '%'), 80);
   $('#riskList').innerHTML = state.risks.map((r, i) => {
     const imp = r.impact.toLowerCase(), lvl = imp.includes('high') ? 'high' : imp.includes('low') ? 'low' : '';
@@ -925,7 +1009,7 @@ function renderTeam() {
 /* ---------- modal ---------- */
 let editing = null;
 function fillOwners() {
-  const names = [...new Set([...state.people.map(p => p.name), ...state.all.people.map(p => p.name), ...state.tasks.map(t => t.owner)].map(n => clean(n).toUpperCase()))].filter(n => !isMissing(n));
+  const names = [...new Set([...state.people.map(p => p.name), ...state.all.people.map(p => p.name), ...state.tasks.map(t => t.owner)].map(n => clean(n).toUpperCase()))].filter(n => !isMissing(n) && n !== UA);
   $('#fOwner').innerHTML = names.map(n => `<option value="${esc(n)}">${esc(title(n))}</option>`).join('');
 }
 function openModal(t = null) {
@@ -946,7 +1030,7 @@ function openModal(t = null) {
 function closeModal() { $('#taskModal').classList.remove('show'); editing = null; }
 $('#mCancel').onclick = closeModal;
 $('#taskModal').addEventListener('click', e => { if (e.target.id === 'taskModal') closeModal(); });
-document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal(); $('#resetModal').classList.remove('show'); } });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal(); closeAssign(); $('#resetModal').classList.remove('show'); $('#txModal').classList.remove('show'); } });
 $('#taskForm').addEventListener('submit', async e => {
   e.preventDefault();
   const btn = $('#mSave'); btn.disabled = true; btn.textContent = 'Saving…';
@@ -962,6 +1046,112 @@ $('#taskForm').addEventListener('submit', async e => {
   } catch (err) { sfx.error(); toast('Could not save: ' + err.message, '⚠️', 5000); }
   finally { btn.disabled = false; btn.textContent = 'Save task'; }
 });
+
+/* ---------- assign / transfer ---------- */
+let assigning = null;
+function knownPeople() {
+  const map = new Map();
+  state.all.people.forEach(p => { const k = clean(p.name).toUpperCase(); if (!k || k === UA || isMissing(k)) return; const cur = map.get(k) || { name: p.name, email: '' }; if (p.email) cur.email = p.email; map.set(k, cur); });
+  state.all.tasks.forEach(t => { const k = clean(t.owner).toUpperCase(); if (k !== UA && !isMissing(k) && !map.has(k)) map.set(k, { name: t.owner, email: '' }); });
+  return [...map.values()].sort((a, b) => title(a.name).localeCompare(title(b.name)));
+}
+function openAssign(t) {
+  if (!t) return; assigning = t; sfx.click();
+  const ua = t.owner === UA;
+  $('#aTitle').textContent = ua ? '🙋 Assign task' : '🔁 Transfer task';
+  $('#aTask').textContent = `“${t.task}”` + (ua ? '' : ` — currently ${title(t.owner)}`);
+  const people = knownPeople().filter(p => clean(p.name).toUpperCase() !== clean(t.owner).toUpperCase());
+  $('#aTo').innerHTML = `<option value="" disabled selected>Choose a person…</option>` + people.map(p => `<option value="${esc(p.name)}" data-email="${esc(p.email)}">${esc(title(p.name))}${p.email ? ' · ' + esc(p.email) : ''}</option>`).join('') + `<option value="__new">➕ Someone new (not in the meeting)</option>`;
+  $('#aNewWrap').hidden = true; $('#aName').value = ''; $('#aEmail').value = ''; $('#aNote').value = ''; syncAssign();
+  $('#assignModal').classList.add('show'); setTimeout(() => $('#aTo').focus(), 50);
+}
+function syncAssign() {
+  const v = $('#aTo').value, isNew = v === '__new';
+  $('#aNewWrap').hidden = !isNew; $('#aName').required = isNew; $('#aEmail').required = isNew;
+  const opt = $('#aTo').selectedOptions[0];
+  if (!isNew && opt && opt.dataset.email !== undefined) $('#aEmail').value = opt.dataset.email || '';
+  $('#aEmailHint').textContent = isNew ? '(required)' : '(optional — without it the email goes to the team inbox)';
+}
+$('#aTo').addEventListener('change', syncAssign);
+const closeAssign = () => { $('#assignModal').classList.remove('show'); assigning = null; };
+$('#aCancel').onclick = closeAssign;
+$('#assignModal').addEventListener('click', e => { if (e.target.id === 'assignModal') closeAssign(); });
+$('#assignForm').addEventListener('submit', async e => {
+  e.preventDefault(); const t = assigning; if (!t) return;
+  const isNew = $('#aTo').value === '__new';
+  const name = isNew ? $('#aName').value.trim() : $('#aTo').value;
+  const email = $('#aEmail').value.trim();
+  if (!name) { toast('Choose who gets the task', '🙋'); return; }
+  const btn = $('#aSave'); btn.disabled = true; btn.textContent = 'Assigning…';
+  const m = state.all.meetings.find(x => x.id === t.meeting);
+  try {
+    await callN8n('dashboard-reassign-task', { task: t.task, from: t.owner === UA ? 'Unassigned' : t.owner, to_name: name, to_email: email, is_new: isNew, meeting_id: t.meeting, meeting_title: m ? m.title : '', deadline: t.deadline, priority: t.prioRaw || t.prio, status: t.status, note: $('#aNote').value.trim() });
+    const prev = title(t.owner); t.owner = name.toUpperCase();
+    if (isNew || email) state.all.people.push({ name, role: isNew ? 'Added from dashboard' : '', contrib: '', email, meeting: t.meeting });
+    personColor(t.owner); render(); closeAssign(); sfx.success(); confetti(innerWidth / 2, innerHeight / 3, 60);
+    toast(`${prev === 'Unassigned' ? 'Assigned' : 'Transferred'} to ${title(name)} — email + Slack sent`, '📨', 4500);
+    setTimeout(() => load(true), 5000);
+  } catch (err) { sfx.error(); toast('Could not assign: ' + err.message, '⚠️', 5000); }
+  finally { btn.disabled = false; btn.textContent = 'Assign task'; }
+});
+
+/* ---------- transcript viewer ---------- */
+let txRaw = '';
+function renderTx() {
+  const q = $('#txQ').value.trim();
+  let h = esc(txRaw).replace(/^([A-ZÁÉÍÓÚÑ][^\n:]{1,40}):/gm, '<b>$1:</b>');
+  if (q.length > 1) { const re = new RegExp('(' + q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi'); h = h.replace(/(<[^>]+>)|([^<]+)/g, (m0, tag, txt) => tag || txt.replace(re, '<mark>$1</mark>')); }
+  $('#txBody').innerHTML = h || '<span class="sub">No transcript stored for this meeting.</span>';
+  const first = $('#txBody mark'); if (first) first.scrollIntoView({ block: 'center' });
+}
+function openTranscript(id) {
+  const m = state.all.meetings.find(x => x.id === id); if (!m) return;
+  txRaw = m.transcript || ''; sfx.click();
+  $('#txTitle').textContent = '📄 ' + title(m.title);
+  $('#txSub').textContent = (m.date ? fmtDate(m.date) + ' · ' : '') + (txRaw ? `${txRaw.length.toLocaleString()} characters` : 'Transcripts are saved for meetings analyzed from now on');
+  $('#txQ').value = ''; renderTx(); $('#txModal').classList.add('show');
+}
+$('#txQ').addEventListener('input', renderTx);
+$('#txClose').onclick = () => $('#txModal').classList.remove('show');
+$('#txModal').addEventListener('click', e => { if (e.target.id === 'txModal') $('#txModal').classList.remove('show'); });
+
+/* ---------- Ask MeetMind (Gemini, grounded) ---------- */
+function meetingContext() {
+  const ms = state.meetings.length ? state.meetings : state.all.meetings;
+  const single = ms.length === 1;
+  return ms.map(m => {
+    const tasks = state.all.tasks.filter(t => t.meeting === m.id);
+    const people = state.all.people.filter(p => p.meeting === m.id);
+    const risks = state.all.risks.filter(r => r.meeting === m.id);
+    return [`=== MEETING: ${m.title} (${m.date || 'date not recorded'}) ===`,
+      `Summary: ${m.summary || 'n/a'}`,
+      `Participants: ${m.people.join(', ') || 'n/a'}`,
+      people.length ? 'Participant notes:\n' + people.map(p => `- ${p.name}${isMissing(p.role) ? '' : ' (' + p.role + ')'}: ${p.contrib || 'no notes'}`).join('\n') : '',
+      `Decisions: ${m.decisions.join(' | ') || 'none recorded'}`,
+      `Open questions: ${m.questions.join(' | ') || 'none recorded'}`,
+      'Tasks:\n' + (tasks.map(t => `- ${t.task} — owner: ${t.owner === UA ? 'UNASSIGNED' : title(t.owner)} — deadline: ${t.deadline || 'n/a'} — priority: ${t.prio} — status: ${t.status}`).join('\n') || '- none'),
+      'Risks/blockers:\n' + (risks.map(r => `- [${r.type}] ${r.desc}`).join('\n') || '- none'),
+      single && m.transcript ? `Full transcript:\n${m.transcript}` : ''].filter(Boolean).join('\n');
+  }).join('\n\n');
+}
+function askScope() { const sel = state.all.meetings.find(m => m.id === state.meeting); $('#askScope').textContent = sel ? `Scope: ${title(sel.title)}${sel.transcript ? ' (includes transcript)' : ''}` : `Scope: all ${state.meetings.length} visible meetings — pick one meeting for transcript-level answers`; }
+function md(t) { return esc(t).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/(^|\n)[*-] (.+)/g, '$1• $2').replace(/\n/g, '<br>'); }
+function addMsg(cls, html) { const d = document.createElement('div'); d.className = 'msg ' + cls; d.innerHTML = html; $('#askMsgs').appendChild(d); $('#askMsgs').scrollTop = 1e9; return d; }
+async function askSend() {
+  const q = $('#askIn').value.trim(); if (!q) return;
+  $('#askIn').value = ''; addMsg('user', esc(q)); sfx.click();
+  const typing = addMsg('bot typing', 'Thinking <i></i><i></i><i></i>');
+  try {
+    const raw = await callN8n('dashboard-ask', { question: q, context: meetingContext() });
+    let answer = raw; try { const j = JSON.parse(raw); answer = j.answer || j.text || raw; } catch {}
+    if (raw === 'sent') answer = 'The question was sent but the answer could not be read. Check that the workflow is published.';
+    typing.remove(); addMsg('bot', md(answer)); sfx.pop();
+  } catch (e) { typing.remove(); addMsg('bot', '⚠️ ' + esc(e.message)); sfx.error(); }
+}
+$('#askFab').onclick = () => { askScope(); $('#askPanel').classList.add('show'); $('#askFab').hidden = true; if (!$('#askMsgs').children.length) addMsg('bot', 'Hi! Ask me anything about the selected meeting — tasks, owners, decisions, blockers. I only answer from what was actually said. 🧠'); setTimeout(() => $('#askIn').focus(), 50); sfx.pop(); };
+$('#askClose').onclick = () => { $('#askPanel').classList.remove('show'); $('#askFab').hidden = false; };
+$('#askForm').addEventListener('submit', e => { e.preventDefault(); askSend(); });
+$('#askIn').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); askSend(); } });
 
 /* ---------- upload ---------- */
 const ta = $('#transcript');
@@ -1020,9 +1210,13 @@ document.addEventListener('click', async e => {
     const t = state.all.tasks.find(x => x.id === +act.closest('.tcard').dataset.id);
     if (act.dataset.act === 'done') return changeStatus(t.id, 'Completed', act);
     if (act.dataset.act === 'edit') return openModal(t);
+    if (act.dataset.act === 'assign') return openAssign(t);
     if (act.dataset.act === 'slack') return remind('slack', t.owner, act);
   }
   const rb = e.target.closest('[data-remind]'); if (rb) return remind(rb.dataset.remind, rb.dataset.who, rb);
+  const ab = e.target.closest('[data-assign]'); if (ab) return openAssign(state.all.tasks.find(x => x.id === +ab.dataset.assign));
+  const tb = e.target.closest('[data-transcript]'); if (tb) return openTranscript(tb.dataset.transcript);
+  const qb = e.target.closest('[data-q]'); if (qb) { $('#askIn').value = qb.dataset.q; return askSend(); }
 });
 async function remind(kind, who, btn) {
   btn.disabled = true; sfx.click();
@@ -1032,7 +1226,7 @@ async function remind(kind, who, btn) {
   } catch (e) { sfx.error(); toast('Reminder failed: ' + e.message, '⚠️', 5000); }
   finally { btn.disabled = false; }
 }
-function setMeeting(id) { state.meeting = id; state.owner = ''; store.set('meeting', id); sfx.whoosh(); render(); }
+function setMeeting(id) { state.meeting = id; state.owner = ''; store.set('meeting', id); sfx.whoosh(); render(); askScope(); }
 $('#meetingSel').addEventListener('change', e => setMeeting(e.target.value));
 $('#resetBtn').onclick = () => { sfx.click(); $('#resetModal').classList.add('show'); };
 $('#rCancel').onclick = () => $('#resetModal').classList.remove('show');
