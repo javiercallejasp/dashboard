@@ -373,6 +373,32 @@ table.data th{color:var(--text-3);font-size:11.5px;text-transform:uppercase;lett
 .meet-chip{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:99px;background:var(--brand-soft);color:var(--brand);font-size:12.5px;font-weight:700}
 .btn-danger{background:var(--critical-soft);color:var(--critical);border:1px solid transparent}
 .btn-danger:hover{border-color:var(--critical)}
+.login{position:fixed;inset:0;z-index:400;display:none;align-items:center;justify-content:center;padding:16px;background:var(--bg)}
+body.locked .login{display:flex}
+body.locked .app,body.locked .mobile-nav,body.locked .ask-fab,body.locked .ask-panel{display:none!important}
+.login-card{background:var(--surface);border:1px solid var(--border);border-radius:26px;padding:30px 28px;width:100%;max-width:410px;box-shadow:var(--shadow-lg);animation:modalIn .4s cubic-bezier(.2,.9,.3,1.3)}
+.login-card .lg-logo{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+.login-card .lg-logo svg{width:46px;height:46px}
+.login-card h2{font-size:22px;margin:0}
+.seg{display:flex;background:var(--surface-2);border-radius:14px;padding:4px;margin:18px 0 16px;gap:4px}
+.seg button{flex:1;border:0;background:transparent;color:var(--text-2);font:inherit;font-weight:700;font-size:13.5px;padding:9px 10px;border-radius:10px;cursor:pointer}
+.seg button.on{background:var(--surface);color:var(--text);box-shadow:0 2px 10px -4px rgba(0,0,0,.25)}
+.login-err{color:var(--critical);font-size:13px;font-weight:700;min-height:18px;margin:4px 0 8px}
+.login-more{font-size:12px;color:var(--text-3);margin-top:14px}
+.login-more summary{cursor:pointer}
+.who{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;background:var(--surface-2);font-size:12.5px;color:var(--text-2)}
+.who b{color:var(--text);display:block;font-size:13px}
+.who .grow{flex:1;min-width:0}
+.role-badge{display:inline-block;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;padding:2px 7px;border-radius:999px;background:var(--brand-soft);color:var(--brand)}
+.role-badge.member{background:#e0f2fe;color:#0369a1}
+.pin-chip{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:800;border:1px dashed var(--border);border-radius:999px;padding:2px 8px;margin-top:4px;cursor:pointer;background:var(--surface-2);color:var(--text-2)}
+.pin-chip:hover{border-color:var(--brand);color:var(--brand)}
+.me-badge{display:inline-flex;font-size:11px;font-weight:800;color:#fff;background:var(--grad);border-radius:999px;padding:2px 8px;margin-left:6px;vertical-align:middle}
+.team-card.me{outline:2px solid var(--brand);outline-offset:2px}
+.view-only{display:none;align-items:center;gap:6px;font-size:12px;font-weight:700;color:#0369a1;background:#e0f2fe;border-radius:999px;padding:5px 12px}
+body.member .view-only{display:inline-flex}
+body.member :is(#newTaskBtn,#resetBtn,#historyBtn,[data-page="upload"],[data-page="settings"],.t-actions,.team-actions,[data-assign],[data-question],[data-sendsummary],#tdStatus,#tdStatusLbl,#tdEdit,#tdAssign,#tdRemind,.ua-item .btn,.pin-chip){display:none!important}
+body.member .tcard{cursor:pointer}
 .danger-zone{margin-top:18px;padding-top:16px;border-top:1px dashed var(--border)}
 .danger-zone h4{margin:0 0 6px;color:var(--critical);font-size:14px}
 .danger-zone .sub{margin-bottom:10px}
@@ -421,10 +447,31 @@ table.data th{color:var(--text-3);font-size:11.5px;text-transform:uppercase;lett
 @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
-<body>
+<body class="locked">
 <div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
 <canvas id="confetti"></canvas>
 <div class="tip" id="tip"></div>
+
+<div class="login" id="login" role="dialog" aria-modal="true" aria-labelledby="lgTitle">
+  <form class="login-card" id="loginForm" autocomplete="on">
+    <div class="lg-logo">
+      <svg viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="lg2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7c3aed"/><stop offset=".55" stop-color="#c026d3"/><stop offset="1" stop-color="#ec4899"/></linearGradient></defs><rect width="64" height="64" rx="18" fill="url(#lg2)"/><path d="M14 44V22l9 11 9-11 9 11 9-11v22" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div><h2 id="lgTitle">MeetMind</h2><div class="sub">Sign in to your meeting workspace</div></div>
+    </div>
+    <div class="seg" role="tablist"><button type="button" class="on" data-lgmode="member" role="tab">👤 Team member</button><button type="button" data-lgmode="admin" role="tab">🛡️ Administrator</button></div>
+    <div id="lgMember">
+      <div class="field"><label for="lgName">Your name</label><input id="lgName" list="lgNames" placeholder="Start typing your name…" autocomplete="name"><datalist id="lgNames"></datalist></div>
+      <div class="field"><label for="lgPin">Access PIN</label><input id="lgPin" inputmode="numeric" maxlength="6" placeholder="6-digit PIN from your admin" autocomplete="one-time-code"></div>
+    </div>
+    <div id="lgAdmin" hidden>
+      <div class="field"><label for="lgUser">User</label><input id="lgUser" autocomplete="username"></div>
+      <div class="field"><label for="lgPass">Password</label><input id="lgPass" type="password" autocomplete="current-password"></div>
+    </div>
+    <div class="login-err" id="lgErr" role="alert"></div>
+    <button class="btn btn-primary" id="lgBtn" style="width:100%;justify-content:center">Sign in</button>
+    <details class="login-more"><summary>⚙️ Server address</summary><div class="field" style="margin-top:8px"><input id="lgBase" placeholder="https://your-tunnel.trycloudflare.com"></div></details>
+  </form>
+</div>
 
 <div class="app">
   <aside>
@@ -444,6 +491,7 @@ table.data th{color:var(--text-3);font-size:11.5px;text-transform:uppercase;lett
     <button class="nav-btn" data-page="upload"><span class="ico">✨</span>New meeting</button>
     <button class="nav-btn" data-page="settings"><span class="ico">⚙️</span>Settings</button>
     <div class="side-foot">
+      <div class="who" id="whoBox"><span id="whoAvatar"></span><div class="grow"><b id="whoName">—</b><span class="role-badge" id="whoRole">—</span></div><button class="icon-btn" id="logoutBtn" title="Log out" aria-label="Log out" style="width:34px;height:34px">🚪</button></div>
       <div class="conn"><span class="dot" id="connDot"></span><span id="connText">Connecting…</span></div>
       <div class="conn"><span>🕒</span><span id="syncText">Not synced yet</span></div>
     </div>
@@ -452,13 +500,15 @@ table.data th{color:var(--text-3);font-size:11.5px;text-transform:uppercase;lett
   <main>
     <div class="topbar">
       <div class="greet">
-        <h1><span id="greeting">Hello</span>, team <span class="wave">👋</span></h1>
+        <h1><span id="greeting">Hello</span>, <span id="greetName">team</span> <span class="wave">👋</span></h1>
         <p id="subGreet">Everything MeetMind extracted from your meetings, in one place.</p>
       </div>
       <div class="top-actions">
         <button class="icon-btn" id="soundBtn" title="Toggle sounds" aria-label="Toggle sounds"><span>🔊</span></button>
         <button class="icon-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle theme"><span>🌙</span></button>
+        <span class="view-only" data-tip="Team members can look at everything but can't assign or edit">👀 View only</span>
         <button class="icon-btn" id="refreshBtn" title="Refresh data" aria-label="Refresh data"><span>🔄</span></button>
+        <button class="icon-btn" id="logoutTop" title="Log out" aria-label="Log out"><span>🚪</span></button>
         <button class="btn btn-primary" id="newTaskBtn"><span>＋</span><span class="lbl">New task</span></button>
       </div>
     </div>
@@ -668,7 +718,7 @@ table.data th{color:var(--text-3);font-size:11.5px;text-transform:uppercase;lett
   <div class="modal wide">
     <div style="display:flex;gap:10px;align-items:flex-start"><div style="flex:1"><div class="sub" id="tdKicker">Task</div><h3 id="tdTitle" style="margin-top:2px">—</h3></div><button class="btn btn-ghost btn-sm" id="tdClose">Close ✕</button></div>
     <div class="td-grid" id="tdGrid"></div>
-    <div class="td-sec">Update status</div>
+    <div class="td-sec" id="tdStatusLbl">Update status</div>
     <div class="td-status" id="tdStatus"></div>
     <div id="tdMore"></div>
     <div class="modal-actions" style="flex-wrap:wrap">
@@ -723,7 +773,7 @@ const store = {
   get(k, d) { try { const v = localStorage.getItem('mm_' + k); return v === null ? d : JSON.parse(v); } catch { return d; } },
   set(k, v) { try { localStorage.setItem('mm_' + k, JSON.stringify(v)); } catch {} }
 };
-const state = { tasks: [], people: [], meetings: [], risks: [], all: { tasks: [], people: [], meetings: [], risks: [], questions: [] }, questions: [], meeting: store.get('meeting', 'ALL'), hidden: store.get('hidden', []), owner: '', q: '', prio: '', base: store.get('base', DEFAULT_BASE), sound: store.get('sound', true), timer: null, lastSync: null, teamFilter: {}, localEdits: {}, synced: false };
+const state = { tasks: [], people: [], meetings: [], risks: [], all: { tasks: [], people: [], meetings: [], risks: [], questions: [] }, questions: [], meeting: store.get('meeting', 'ALL'), hidden: store.get('hidden', []), owner: '', q: '', prio: '', base: store.get('base', DEFAULT_BASE), sound: store.get('sound', true), timer: null, lastSync: null, teamFilter: {}, localEdits: {}, synced: false, role: null, me: '', session: null, pins: {}, pending: [], memberMeetings: null };
 const LEGACY = 'LEGACY', MANUAL = 'MANUAL', UA = 'UNASSIGNED';
 const ownerOf = v => (isMissing(v) || /^(not assigned|unassigned|none|tbd)$/i.test(clean(v))) ? UA : clean(v);
 
@@ -888,6 +938,7 @@ async function load(silent = false) {
     const before = new Map(A.tasks.map(t => [clean(t.task).toLowerCase() + '|' + clean(t.owner).toUpperCase(), t.status]));
     A.people = pa.filter(p => p.Name).map(p => ({ name: p.Name, role: p.Role, contrib: p['Key Contributions'], email: p.Email || p.email || '', meeting: mid(p) }));
     A.tasks = ac.filter(t => t.Task).map((t, i) => ({ id: i, task: t.Task, owner: ownerOf(t.Responsible), deadline: t.Deadline, prioRaw: t.Priority, prio: normPrio(t.Priority), status: normStatus(t.Status), meeting: mid(t) }));
+    applyPending(A);
     A.risks = ri.filter(r => r.Description && !/^n\/a$/i.test(r.Description)).map(r => ({ type: r.Type || 'Risk', desc: r.Description, impact: r.Impact || '', mitigation: r.Mitigation || '', meeting: mid(r) }));
     const byId = new Map();
     ex.filter(m => m['Meeting Title'] || m['Executive Summary']).forEach(m => {
@@ -917,7 +968,7 @@ async function load(silent = false) {
     state.synced = true;
     state.lastSync = new Date();
     $('#syncText').textContent = 'Synced ' + state.lastSync.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    render();
+    render(); fillLoginNames(); if (state.role === 'admin') fetchPins();
     if (!silent) sfx.pop();
   } catch (e) {
     toast('Could not read the Google Sheet: ' + e.message, '⚠️', 5000); sfx.error();
@@ -932,7 +983,12 @@ function splitList(s) {
 /* ---------- render ---------- */
 function computeView() {
   const A = state.all, hidden = new Set(state.hidden);
-  const visible = m => !hidden.has(m) && (state.meeting === 'ALL' || m === state.meeting);
+  if (state.role === 'member') {
+    const me = state.me;
+    state.memberMeetings = new Set([...A.people.filter(p => clean(p.name).toUpperCase() === me).map(p => p.meeting), ...A.tasks.filter(t => clean(t.owner).toUpperCase() === me).map(t => t.meeting)]);
+    if (state.meeting !== 'ALL' && !state.memberMeetings.has(state.meeting)) state.meeting = 'ALL';
+  } else state.memberMeetings = null;
+  const visible = m => !hidden.has(m) && (state.meeting === 'ALL' || m === state.meeting) && (!state.memberMeetings || state.memberMeetings.has(m));
   state.meetings = A.meetings.filter(m => visible(m.id));
   state.tasks = A.tasks.filter(t => visible(t.meeting));
   state.risks = A.risks.filter(r => visible(r.meeting));
@@ -948,7 +1004,7 @@ function computeView() {
   state.people = [...merged.values()];
 }
 function fillMeetings() {
-  const hidden = new Set(state.hidden), list = state.all.meetings.filter(m => !hidden.has(m.id));
+  const hidden = new Set(state.hidden), list = state.all.meetings.filter(m => !hidden.has(m.id) && (!state.memberMeetings || state.memberMeetings.has(m.id)));
   const label = m => `${title(m.title)}${m.date ? ' · ' + fmtDate(m.date) : ''}`;
   $('#meetingSel').innerHTML = `<option value="ALL">✨ All meetings (${list.length})</option>` + list.map(m => `<option value="${esc(m.id)}">${esc(label(m))}</option>`).join('');
   $('#meetingSel').value = state.meeting;
@@ -1056,8 +1112,9 @@ function cardHTML(t, i) {
       </span></div></article>`;
 }
 async function changeStatus(id, newStatus, el) {
+  if (state.role !== 'admin') return toast('View only — ask your admin to change it', '👀');
   const t = state.all.tasks.find(x => x.id === +id); if (!t || t.status === newStatus) return;
-  const prev = t.status; t.status = newStatus; state.localEdits[clean(t.task).toLowerCase() + '|' + clean(t.owner).toUpperCase()] = Date.now(); render();
+  const prev = t.status; t.status = newStatus; rememberSet(t.task, { status: newStatus }); state.localEdits[clean(t.task).toLowerCase() + '|' + clean(t.owner).toUpperCase()] = Date.now(); render();
   const card = $(`.tcard[data-id="${id}"]`); card && card.classList.add('saving');
   sfx.whoosh();
   try {
@@ -1070,7 +1127,7 @@ async function changeStatus(id, newStatus, el) {
 }
 // drag & drop
 let dragId = null;
-document.addEventListener('dragstart', e => { const c = e.target.closest?.('.tcard'); if (!c) return; dragId = c.dataset.id; c.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', dragId); });
+document.addEventListener('dragstart', e => { const c = e.target.closest?.('.tcard'); if (!c) return; if (state.role !== 'admin') { e.preventDefault(); return; } dragId = c.dataset.id; c.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', dragId); });
 document.addEventListener('dragend', e => { e.target.closest?.('.tcard')?.classList.remove('dragging'); $$('.col').forEach(c => c.classList.remove('drag-over')); });
 document.addEventListener('dragover', e => { const col = e.target.closest?.('.col'); if (!col) return; e.preventDefault(); $$('.col').forEach(c => c.classList.toggle('drag-over', c === col)); });
 document.addEventListener('drop', e => { const col = e.target.closest?.('.col'); if (!col) return; e.preventDefault(); col.classList.remove('drag-over'); if (dragId !== null) changeStatus(dragId, col.dataset.status, col); dragId = null; });
@@ -1096,10 +1153,12 @@ function renderMeetings() {
 
 /* ---------- team & risks ---------- */
 function renderTeam() {
-  $('#teamGrid').innerHTML = state.people.map((p, i) => {
+  const ordered = [...state.people].sort((a, b) => (clean(b.name).toUpperCase() === state.me) - (clean(a.name).toUpperCase() === state.me));
+  $('#teamGrid').innerHTML = ordered.map((p, i) => {
     const mine = state.tasks.filter(t => t.owner.toUpperCase() === p.name.toUpperCase()), c = counts(mine), pct = c.total ? Math.round(c.Completed / c.total * 100) : 0;
-    return `<div class="card team-card" style="animation:pop .4s ${i * 80}ms both">
-      <div class="team-head">${avatar(p.name, 'lg')}<div><h3>${esc(title(p.name))}${isFac(p.role) ? '<span class="fac-flag" data-tip="Led this meeting">🚩 Facilitator</span>' : ''}</h3><div class="sub">${esc(isMissing(roleText(p.role)) || !roleText(p.role) ? 'Team member' : roleText(p.role))}</div></div></div>
+    const isMe = clean(p.name).toUpperCase() === state.me, pin = state.pins[clean(p.name).toUpperCase()];
+    return `<div class="card team-card ${isMe ? 'me' : ''}" style="animation:pop .4s ${i * 80}ms both">
+      <div class="team-head">${avatar(p.name, 'lg')}<div><h3>${esc(title(p.name))}${isMe ? '<span class="me-badge">You</span>' : ''}${isFac(p.role) ? '<span class="fac-flag" data-tip="Led this meeting">🚩 Facilitator</span>' : ''}</h3><div class="sub">${esc(isMissing(roleText(p.role)) || !roleText(p.role) ? 'Team member' : roleText(p.role))}</div>${state.role === 'admin' && pin ? `<span class="pin-chip" data-pin="${pin}" data-pinfor="${esc(title(p.name))}" data-tip="Share this PIN so ${esc(title(p.name).split(' ')[0])} can sign in (view only). Click to copy.">🔑 PIN ${pin}</span>` : ''}</div></div>
       ${(() => { const key = p.name.toUpperCase(), f = state.teamFilter[key] || 'all'; return `<div class="team-stats"><button type="button" class="${f === 'all' ? 'on' : ''}" data-tfilter="all" data-person="${esc(key)}"><b>${c.total}</b><small>Tasks</small></button><button type="button" class="${f === 'done' ? 'on' : ''}" data-tfilter="done" data-person="${esc(key)}"><b>${c.Completed}</b><small>Done</small></button><button type="button" class="${f === 'open' ? 'on' : ''}" data-tfilter="open" data-person="${esc(key)}"><b>${c.total - c.Completed}</b><small>Open</small></button></div>
       <div class="progress" data-tip="${pct}% completed"><i style="width:0" data-w="${pct}"></i></div>
       <div class="tlist">${mine.filter(t => f === 'all' || (f === 'done' ? t.status === 'Completed' : t.status !== 'Completed')).map(t => `<button type="button" class="titem ${t.status === 'Completed' ? 'done' : ''}" data-taskopen="${t.id}" data-tip="Open task details"><span class="ti-ico">${STATUSES.find(s => s.key === t.status).icon}</span><span>${esc(t.task)}</span></button>`).join('')}</div>`; })()}
@@ -1163,8 +1222,8 @@ $('#taskForm').addEventListener('submit', async e => {
   if (!editing) data.meeting_id = $('#fMeeting').value || MANUAL;
   try {
     await callN8n(editing ? 'dashboard-edit-task' : 'dashboard-create-task', data);
-    if (editing) Object.assign(editing, { deadline: data.deadline, prio: data.priority, prioRaw: data.priority, status: data.status });
-    else state.all.tasks.push({ id: state.all.tasks.length ? Math.max(...state.all.tasks.map(t => t.id)) + 1 : 0, task: data.task, owner: data.responsible, deadline: data.deadline, prio: data.priority, prioRaw: data.priority, status: data.status, meeting: data.meeting_id });
+    if (editing) { Object.assign(editing, { deadline: data.deadline, prio: data.priority, prioRaw: data.priority, status: data.status }); rememberSet(editing.task, { deadline: data.deadline, status: data.status }); }
+    else rememberNew({ task: data.task, owner: data.responsible, deadline: data.deadline, prio: data.priority, prioRaw: data.priority, status: data.status, meeting: data.meeting_id }), state.all.tasks.push({ id: state.all.tasks.length ? Math.max(...state.all.tasks.map(t => t.id)) + 1 : 0, task: data.task, owner: data.responsible, deadline: data.deadline, prio: data.priority, prioRaw: data.priority, status: data.status, meeting: data.meeting_id });
     render(); closeModal(); sfx.success(); confetti(innerWidth / 2, innerHeight / 2, 70);
     toast(editing ? 'Task updated' : 'Task created and saved to Sheets', '💾');
     setTimeout(() => load(true), 4000);
@@ -1211,7 +1270,7 @@ $('#assignForm').addEventListener('submit', async e => {
   const m = state.all.meetings.find(x => x.id === t.meeting);
   try {
     await callN8n('dashboard-reassign-task', { task: t.task, from: t.owner === UA ? 'Unassigned' : t.owner, to_name: name, to_email: email, is_new: isNew, meeting_id: t.meeting, meeting_title: m ? m.title : '', deadline: t.deadline, priority: t.prioRaw || t.prio, status: t.status, note: $('#aNote').value.trim() });
-    const prev = title(t.owner); t.owner = name.toUpperCase();
+    const prev = title(t.owner); t.owner = name.toUpperCase(); rememberSet(t.task, { owner: t.owner });
     if (isNew || email) state.all.people.push({ name, role: isNew ? 'Added from dashboard' : '', contrib: '', email, meeting: t.meeting });
     personColor(t.owner); render(); closeAssign(); sfx.success(); confetti(innerWidth / 2, innerHeight / 3, 60);
     toast(`${prev === 'Unassigned' ? 'Assigned' : 'Transferred'} to ${title(name)} — email + Slack sent`, '📨', 4500);
@@ -1373,11 +1432,15 @@ $('#analyzeBtn').onclick = async () => {
 
 /* ---------- navigation & controls ---------- */
 function go(page) {
+  if (state.role === 'member' && (page === 'upload' || page === 'settings')) page = 'overview';
   $$('.page').forEach(p => p.classList.toggle('active', p.id === 'page-' + page));
   $$('[data-page]').forEach(b => b.classList.toggle('active', b.dataset.page === page));
   store.set('page', page); sfx.click(); scrollTo({ top: 0, behavior: 'smooth' });
 }
 document.addEventListener('click', async e => {
+  if (state.role === 'member' && e.target.closest('[data-act],[data-remind],[data-assign],[data-question],[data-sendsummary],[data-tdstatus]')) { e.preventDefault(); return toast('View only — ask your admin to change it', '👀'); }
+  const pc = e.target.closest('[data-pin]'); if (pc) { try { await navigator.clipboard.writeText(pc.dataset.pin); } catch {} return toast(`PIN for ${pc.dataset.pinfor} copied: ${pc.dataset.pin}`, '🔑', 5000); }
+  const card = e.target.closest('.tcard'); if (card && !e.target.closest('button')) return openTask(+card.dataset.id);
   const nav = e.target.closest('[data-page]'); if (nav) return go(nav.dataset.page);
   const g = e.target.closest('[data-go]'); if (g) return go(g.dataset.go);
   const tt = e.target.closest('[data-table]'); if (tt) { const el = $('#' + tt.dataset.table); el.hidden = !el.hidden; tt.textContent = el.hidden ? 'Table view' : 'Hide table'; return; }
@@ -1400,6 +1463,21 @@ document.addEventListener('click', async e => {
   const to = e.target.closest('[data-taskopen]'); if (to) return openTask(+to.dataset.taskopen);
   const ss = e.target.closest('[data-sendsummary]'); if (ss) return sendSummary(ss.dataset.sendsummary, ss);
 });
+/* ---------- pending changes (Google's CSV export can lag a few seconds) ---------- */
+function rememberSet(task, fields) { state.pending.push({ type: 'set', task: clean(task).toLowerCase(), fields, ts: Date.now() }); }
+function rememberNew(t) { state.pending.push({ type: 'new', task: clean(t.task).toLowerCase(), data: { ...t }, ts: Date.now() }); }
+function applyPending(A) {
+  const now = Date.now();
+  state.pending = state.pending.filter(p => now - p.ts < 180000);
+  state.pending.forEach(p => {
+    const t = A.tasks.find(x => clean(x.task).toLowerCase() === p.task);
+    if (p.type === 'new') { if (t) p.done = true; else A.tasks.push({ ...p.data, id: A.tasks.length ? Math.max(...A.tasks.map(x => x.id)) + 1 : 0 }); return; }
+    if (!t) return;
+    const same = Object.entries(p.fields).every(([f, v]) => f === 'owner' ? clean(t.owner).toUpperCase() === clean(v).toUpperCase() : clean(t[f]) === clean(v));
+    if (same) p.done = true; else Object.assign(t, p.fields);
+  });
+  state.pending = state.pending.filter(p => !p.done);
+}
 /* ---------- task detail ---------- */
 let tdTask = null;
 function openTask(id) {
@@ -1497,6 +1575,56 @@ $('#testUrl').onclick = async () => {
   if (await healthy(base)) { setConn(true); toast('n8n is reachable 🎉', '✅'); sfx.success(); }
   else { setConn(false, 'unreachable'); toast('Cannot reach n8n — check the tunnel URL', '⚠️', 5000); sfx.error(); }
 };
+/* ---------- login & roles ---------- */
+let lgMode = 'member';
+$$('[data-lgmode]').forEach(b => b.onclick = () => { lgMode = b.dataset.lgmode; $$('[data-lgmode]').forEach(x => x.classList.toggle('on', x === b)); $('#lgMember').hidden = lgMode !== 'member'; $('#lgAdmin').hidden = lgMode !== 'admin'; $('#lgErr').textContent = ''; (lgMode === 'admin' ? $('#lgUser') : $('#lgName')).focus(); });
+$('#lgBase').value = state.base || '';
+function fillLoginNames() {
+  const names = [...new Set([...state.all.people.map(p => title(p.name)), ...state.all.tasks.filter(t => t.owner !== UA).map(t => title(t.owner))])].filter(n => n && !isMissing(n)).sort();
+  $('#lgNames').innerHTML = names.map(n => `<option value="${esc(n)}">`).join('');
+}
+$('#loginForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const btn = $('#lgBtn'); $('#lgErr').textContent = '';
+  const base = $('#lgBase').value.trim().replace(/\/+$/, ''); if (base && base !== state.base) { state.base = base; store.set('base', base); $('#baseUrl').value = base; }
+  const payload = lgMode === 'admin' ? { action: 'login', mode: 'admin', user: $('#lgUser').value.trim(), password: $('#lgPass').value } : { action: 'login', mode: 'member', name: $('#lgName').value.trim(), pin: $('#lgPin').value.trim() };
+  if (lgMode === 'member' && (!payload.name || !payload.pin)) return ($('#lgErr').textContent = 'Type your name and the PIN your admin gave you.');
+  btn.disabled = true; btn.textContent = '⏳ Signing in…';
+  try {
+    const raw = await callN8n('dashboard-auth', payload);
+    let r = {}; try { r = JSON.parse(raw); } catch { r = { ok: false, error: 'The server did not answer — check the server address.' }; }
+    if (!r.ok) throw new Error(r.error || 'Could not sign in');
+    const sess = { role: r.role, name: r.name, token: r.token, exp: r.exp };
+    store.set('session', sess); $('#lgPass').value = ''; $('#lgPin').value = '';
+    applySession(sess); sfx.success(); toast(`Welcome, ${title(r.name).split(' ')[0]}!`, r.role === 'admin' ? '🛡️' : '👋');
+  } catch (err) { sfx.error(); $('#lgErr').textContent = err.message; }
+  finally { btn.disabled = false; btn.textContent = 'Sign in'; }
+});
+function applySession(sess) {
+  state.session = sess; state.role = sess.role; state.me = clean(sess.name).toUpperCase();
+  document.body.classList.remove('locked');
+  document.body.classList.toggle('member', sess.role === 'member');
+  document.body.classList.toggle('admin', sess.role === 'admin');
+  $('#whoName').textContent = title(sess.name);
+  $('#whoRole').textContent = sess.role === 'admin' ? 'Administrator' : 'Team member';
+  $('#whoRole').className = 'role-badge ' + (sess.role === 'admin' ? '' : 'member');
+  $('#whoAvatar').innerHTML = avatar(sess.name);
+  $('#greetName').textContent = title(sess.name).split(' ')[0];
+  if (sess.role === 'member') { $('#subGreet').textContent = 'Your tasks and the meetings you joined — view only.'; state.owner = state.me; if (['upload', 'settings'].includes(store.get('page', 'overview'))) go('overview'); }
+  render(); if (sess.role === 'admin') fetchPins();
+}
+async function fetchPins() {
+  if (state.role !== 'admin' || !state.session) return;
+  const names = [...new Set([...state.all.people.map(p => clean(p.name).toUpperCase()), ...state.all.tasks.map(t => clean(t.owner).toUpperCase())])].filter(n => n && n !== UA && !isMissing(n) && !state.pins[n]);
+  if (!names.length) return;
+  try {
+    const s = state.session; const raw = await callN8n('dashboard-auth', { action: 'pins', role: s.role, name: s.name, exp: s.exp, token: s.token, names: JSON.stringify(names) });
+    const r = JSON.parse(raw); if (r.ok) { Object.assign(state.pins, r.pins); renderTeam(); }
+  } catch {}
+}
+function logout() { store.set('session', null); state.role = null; state.session = null; location.reload(); }
+$('#logoutBtn').onclick = logout; $('#logoutTop').onclick = logout;
+
 function setAuto(sec) { clearInterval(state.timer); if (+sec) state.timer = setInterval(() => load(true), sec * 1000); }
 $('#autoRef').value = String(store.get('auto2', 10)); setAuto(store.get('auto2', 10));
 // refresh as soon as the tab is visible again (e.g. after tapping a Slack/email button)
@@ -1508,6 +1636,7 @@ const h = new Date().getHours();
 $('#greeting').textContent = h < 12 ? 'Good morning' : h < 19 ? 'Good afternoon' : 'Good evening';
 const startPage = store.get('page', 'overview'); if (startPage !== 'overview' && $('#page-' + startPage)) go(startPage);
 healthy(state.base || '').then(ok => setConn(ok));
+{ const sess = store.get('session', null); if (sess && sess.exp > Date.now()) applySession(sess); else setTimeout(() => $('#lgName').focus(), 300); }
 load(true);
 })();
 </script>
