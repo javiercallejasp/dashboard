@@ -243,6 +243,38 @@ select.sel{padding:10px 12px;border-radius:12px;border:1px solid var(--border);b
 .team-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:16px 0}
 .team-stats div{background:var(--surface-2);border-radius:12px;padding:10px;text-align:center}
 .team-stats b{display:block;font-size:20px;font-weight:800}
+.team-stats button{background:var(--surface-2);border:2px solid transparent;border-radius:12px;padding:10px;text-align:center;cursor:pointer;color:inherit;font:inherit;transition:border-color .2s,transform .15s}
+.team-stats button:hover{transform:translateY(-2px);border-color:var(--brand-soft)}
+.team-stats button.on{border-color:var(--brand)}
+.team-stats button b{display:block;font-size:20px;font-weight:800}
+.team-stats button small{font-size:11px;color:var(--text-3);font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+.fac-flag{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:800;color:#b45309;background:#fef3c7;border-radius:999px;padding:2px 8px;margin-left:6px;vertical-align:middle}
+:root[data-theme="dark"] .fac-flag{background:#422006;color:#fbbf24}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .fac-flag{background:#422006;color:#fbbf24}}
+.avatar-wrap{position:relative;display:inline-block}
+.avatar-wrap .mini-flag{position:absolute;right:-4px;top:-6px;font-size:12px}
+.tlist{display:flex;flex-direction:column;gap:6px;margin:0 0 14px;max-height:190px;overflow:auto;padding-right:4px;scrollbar-width:thin}
+.tlist:empty{display:none}
+.titem{display:flex;gap:8px;align-items:flex-start;text-align:left;background:var(--surface-2);border:1px solid transparent;border-radius:10px;padding:8px 10px;font:inherit;font-size:12.5px;line-height:1.35;color:var(--text);cursor:pointer;transition:border-color .2s,transform .15s}
+.titem:hover{border-color:var(--brand);transform:translateX(3px)}
+.titem .ti-ico{flex:none}
+.titem.done span:last-child{text-decoration:line-through;color:var(--text-3)}
+.contrib-label{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin:4px 0 4px}
+.m-points{background:var(--surface-2);border-radius:14px;padding:14px;margin:0 0 14px}
+.m-points h4{font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-3);margin-bottom:8px}
+.m-points ul{padding-left:18px;font-size:13.5px;line-height:1.6}
+.m-fac{font-size:13px;color:var(--text-2);margin:6px 0 4px}
+.td-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:12px 0}
+.td-grid div{background:var(--surface-2);border-radius:12px;padding:10px}
+.td-grid small{display:block;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--text-3);margin-bottom:3px}
+.td-status{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 12px}
+.td-status button{border:2px solid var(--border);background:var(--surface);color:var(--text);border-radius:10px;padding:7px 11px;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+.td-status button.on{border-color:var(--brand);background:var(--brand-soft)}
+.td-sec{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin:12px 0 6px}
+.td-list{font-size:13px;line-height:1.5;color:var(--text-2);padding-left:18px}
+.tcard.flash{animation:flash 1.6s ease 2}
+@keyframes flash{0%,100%{box-shadow:none}50%{box-shadow:0 0 0 4px var(--brand)}}
+@media (max-width:560px){.td-grid{grid-template-columns:1fr}}
 .team-stats small{font-size:11px;color:var(--text-3);font-weight:700;text-transform:uppercase;letter-spacing:.05em}
 .progress{height:8px;border-radius:99px;background:var(--surface-2);overflow:hidden;margin-bottom:14px}
 .progress i{display:block;height:100%;background:var(--good);border-radius:99px;transition:width 1s cubic-bezier(.2,.8,.2,1)}
@@ -552,7 +584,7 @@ table.data th{color:var(--text-3);font-size:11.5px;text-transform:uppercase;lett
         <div class="card">
           <h3>📊 Data source</h3>
           <div class="sub" style="margin-bottom:16px">Read live from the “MeetMind Final” Google Sheet.</div>
-          <div class="field"><label>Auto-refresh</label><select id="autoRef" class="sel"><option value="0">Off</option><option value="30">Every 30 seconds</option><option value="60">Every minute</option><option value="300">Every 5 minutes</option></select></div>
+          <div class="field"><label>Auto-refresh</label><select id="autoRef" class="sel"><option value="0">Off</option><option value="10">Every 10 seconds (live)</option><option value="15">Every 15 seconds</option><option value="30">Every 30 seconds</option><option value="60">Every minute</option><option value="300">Every 5 minutes</option></select></div>
           <a class="btn btn-ghost" target="_blank" rel="noopener" href="https://docs.google.com/spreadsheets/d/1gSHt9LpZXrwbRBR7C1-hBL-mAiFz1liB2BeIc-yClkw/edit">Open Google Sheet ↗</a>
         </div>
       </div>
@@ -632,6 +664,22 @@ table.data th{color:var(--text-3);font-size:11.5px;text-transform:uppercase;lett
   </form>
 </div>
 
+<div class="overlay" id="tdModal" role="dialog" aria-modal="true" aria-labelledby="tdTitle">
+  <div class="modal wide">
+    <div style="display:flex;gap:10px;align-items:flex-start"><div style="flex:1"><div class="sub" id="tdKicker">Task</div><h3 id="tdTitle" style="margin-top:2px">—</h3></div><button class="btn btn-ghost btn-sm" id="tdClose">Close ✕</button></div>
+    <div class="td-grid" id="tdGrid"></div>
+    <div class="td-sec">Update status</div>
+    <div class="td-status" id="tdStatus"></div>
+    <div id="tdMore"></div>
+    <div class="modal-actions" style="flex-wrap:wrap">
+      <button type="button" class="btn btn-ghost btn-sm" id="tdBoard">🗂️ Show on board</button>
+      <button type="button" class="btn btn-ghost btn-sm" id="tdEdit">✏️ Edit</button>
+      <button type="button" class="btn btn-ghost btn-sm" id="tdAssign">🔁 Assign / transfer</button>
+      <button type="button" class="btn btn-primary btn-sm" id="tdRemind">💬 Slack reminder</button>
+    </div>
+  </div>
+</div>
+
 <div class="overlay" id="txModal" role="dialog" aria-modal="true" aria-labelledby="txTitle">
   <div class="modal wide">
     <div style="display:flex;gap:10px;align-items:flex-start"><div style="flex:1"><h3 id="txTitle">Transcript</h3><div class="sub" id="txSub"></div></div><button class="btn btn-ghost btn-sm" id="txClose">Close ✕</button></div>
@@ -675,7 +723,7 @@ const store = {
   get(k, d) { try { const v = localStorage.getItem('mm_' + k); return v === null ? d : JSON.parse(v); } catch { return d; } },
   set(k, v) { try { localStorage.setItem('mm_' + k, JSON.stringify(v)); } catch {} }
 };
-const state = { tasks: [], people: [], meetings: [], risks: [], all: { tasks: [], people: [], meetings: [], risks: [], questions: [] }, questions: [], meeting: store.get('meeting', 'ALL'), hidden: store.get('hidden', []), owner: '', q: '', prio: '', base: store.get('base', DEFAULT_BASE), sound: store.get('sound', true), timer: null, lastSync: null };
+const state = { tasks: [], people: [], meetings: [], risks: [], all: { tasks: [], people: [], meetings: [], risks: [], questions: [] }, questions: [], meeting: store.get('meeting', 'ALL'), hidden: store.get('hidden', []), owner: '', q: '', prio: '', base: store.get('base', DEFAULT_BASE), sound: store.get('sound', true), timer: null, lastSync: null, teamFilter: {}, localEdits: {}, synced: false };
 const LEGACY = 'LEGACY', MANUAL = 'MANUAL', UA = 'UNASSIGNED';
 const ownerOf = v => (isMissing(v) || /^(not assigned|unassigned|none|tbd)$/i.test(clean(v))) ? UA : clean(v);
 
@@ -734,6 +782,8 @@ function normPrio(s) {
 function normQStatus(s) { const v = clean(s).toLowerCase(); if (v.startsWith('answer') || v.startsWith('complet') || v === 'done') return 'Answered'; if (v.includes('progress')) return 'In Progress'; if (v.startsWith('block')) return 'Blocked'; return 'Open'; }
 const Q_STYLE = { 'Open': ['b-pending', '❓', ''], 'In Progress': ['b-progress', '🚧', 'st-progress'], 'Blocked': ['b-blocked', '⛔', 'st-blocked'], 'Answered': ['b-completed', '✅', 'st-answered'] };
 const qBadge = s => `<span class="badge ${Q_STYLE[s][0]}">${Q_STYLE[s][1]} ${s}</span>`;
+const isFac = r => /facilitat/i.test(clean(r));
+const roleText = r => clean(r).replace(/^facilitator\s*·?\s*/i, '');
 const isMissing = v => !v || /^(not mentioned|not assigned|unknown|n\/a)$/i.test(clean(v));
 
 /* ---------- people colours: fixed by entity, never by rank ---------- */
@@ -826,11 +876,16 @@ function setConn(ok, msg) {
 
 /* ---------- load ---------- */
 async function load(silent = false) {
+  if (state.loading) return; state.loading = true;
   const btn = $('#refreshBtn'); btn.classList.add('spin');
   try {
     const [ex, pa, ac, ri, qs] = await Promise.all([fetchTab(GIDS.executive), fetchTab(GIDS.participants), fetchTab(GIDS.actions), fetchTab(GIDS.risks), fetchQuestions()]);
+    const sig = JSON.stringify([ex, pa, ac, ri, qs]);
+    if (silent && sig === state.sig) { state.lastSync = new Date(); $('#syncText').textContent = 'Synced ' + state.lastSync.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }); return; }
+    state.sig = sig;
     const mid = r => clean(r['Meeting ID']) || LEGACY;
     const A = state.all;
+    const before = new Map(A.tasks.map(t => [clean(t.task).toLowerCase() + '|' + clean(t.owner).toUpperCase(), t.status]));
     A.people = pa.filter(p => p.Name).map(p => ({ name: p.Name, role: p.Role, contrib: p['Key Contributions'], email: p.Email || p.email || '', meeting: mid(p) }));
     A.tasks = ac.filter(t => t.Task).map((t, i) => ({ id: i, task: t.Task, owner: ownerOf(t.Responsible), deadline: t.Deadline, prioRaw: t.Priority, prio: normPrio(t.Priority), status: normStatus(t.Status), meeting: mid(t) }));
     A.risks = ri.filter(r => r.Description && !/^n\/a$/i.test(r.Description)).map(r => ({ type: r.Type || 'Risk', desc: r.Description, impact: r.Impact || '', mitigation: r.Mitigation || '', meeting: mid(r) }));
@@ -854,13 +909,19 @@ async function load(silent = false) {
     A.meetings = [...byId.values()].sort((a, b) => (Date.parse(b.date) || 0) - (Date.parse(a.date) || 0) || (b.id > a.id ? 1 : -1));
     [...A.people.map(p => p.name), ...A.tasks.map(t => t.owner)].forEach(n => personColor(n));
     if (state.meeting !== 'ALL' && !byId.has(state.meeting)) state.meeting = 'ALL';
+    if (state.synced) {
+      const changes = A.tasks.filter(t => { const k = clean(t.task).toLowerCase() + '|' + clean(t.owner).toUpperCase(); return before.has(k) && before.get(k) !== t.status && !(state.localEdits[k] && Date.now() - state.localEdits[k] < 90000); });
+      changes.slice(0, 3).forEach((t, i) => setTimeout(() => { toast(`${STATUSES.find(s => s.key === t.status).icon} ${title(t.owner)} → ${t.status}: “${t.task.slice(0, 60)}${t.task.length > 60 ? '…' : ''}” (from Slack/email)`, '📲', 6000); if (t.status === 'Completed') confetti(); sfx.pop(); }, i * 700));
+      if (changes.length > 3) toast(`+${changes.length - 3} more updates synced`, '📲');
+    }
+    state.synced = true;
     state.lastSync = new Date();
     $('#syncText').textContent = 'Synced ' + state.lastSync.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     render();
     if (!silent) sfx.pop();
   } catch (e) {
     toast('Could not read the Google Sheet: ' + e.message, '⚠️', 5000); sfx.error();
-  } finally { btn.classList.remove('spin'); }
+  } finally { btn.classList.remove('spin'); state.loading = false; }
 }
 function splitList(s) {
   const txt = clean(s); if (!txt) return [];
@@ -996,7 +1057,7 @@ function cardHTML(t, i) {
 }
 async function changeStatus(id, newStatus, el) {
   const t = state.all.tasks.find(x => x.id === +id); if (!t || t.status === newStatus) return;
-  const prev = t.status; t.status = newStatus; render();
+  const prev = t.status; t.status = newStatus; state.localEdits[clean(t.task).toLowerCase() + '|' + clean(t.owner).toUpperCase()] = Date.now(); render();
   const card = $(`.tcard[data-id="${id}"]`); card && card.classList.add('saving');
   sfx.whoosh();
   try {
@@ -1021,13 +1082,14 @@ function renderMeetings() {
     return `<div class="card meeting ${m.id === state.meeting ? 'selected' : ''}" style="animation-delay:${i * 80}ms">
       <div class="m-date">${d ? `<b>${d.getDate()}</b><small>${d.toLocaleDateString(undefined, { month: 'short' })}</small>` : '<b>🎙️</b>'}</div>
       <div class="m-body"><h3>${esc(title(m.title))}</h3><div class="sub">${fmtDate(m.date)}</div>
-        <p class="summary">${esc(m.summary || 'No summary recorded.')}</p>
+        ${(() => { const facs = state.all.people.filter(p => p.meeting === m.id && isFac(p.role)).map(p => title(p.name)); return facs.length ? `<div class="m-fac">🚩 Facilitated by <b>${esc(facs.join(', '))}</b></div>` : ''; })()}
+        ${(() => { const lines = String(m.summary || '').split(/\n/).map(clean).filter(Boolean); const intro = lines.filter(l => !l.startsWith('•')).join(' '), pts = lines.filter(l => l.startsWith('•')).map(l => l.replace(/^•\s*/, '')); return `<p class="summary">${esc(intro || (pts.length ? '' : 'No summary recorded.'))}</p>${pts.length ? `<div class="m-points"><h4>📌 Key points</h4><ul>${pts.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>` : ''}`; })()}
         <div class="m-sections">
           <div class="m-box"><h4>✅ Key decisions</h4>${m.decisions.length ? `<ul>${m.decisions.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '<span class="sub">No explicit decisions recorded</span>'}</div>
           <div class="m-box"><h4>❓ Open questions</h4>${(() => { const qs = state.all.questions.filter(q => q.meeting === m.id); return qs.length ? `<ul>${qs.map(q => `<li>${esc(q.text)}${qBadge(q.status)}<button type="button" data-question="${q.id}">${q.status === 'Open' ? 'Answer' : 'Update'}</button>${q.answer ? `<div class="sub" style="margin-top:4px">↳ ${esc(q.answer)}</div>` : ''}</li>`).join('')}</ul>` : '<span class="sub">No open questions 🎉</span>'; })()}</div>
         </div>
-        <div class="people">${m.people.map(p => `<span data-tip="${esc(title(p))}">${avatar(p)}</span>`).join('')}</div>
-        <div class="m-actions">${m.id === state.meeting ? '<span class="meet-chip">📍 Currently selected</span><button class="btn btn-ghost btn-sm" data-meeting="ALL">Show all meetings</button>' : `<button class="btn btn-primary btn-sm" data-meeting="${esc(m.id)}">📊 View this meeting</button>`}<button class="btn btn-ghost btn-sm" data-transcript="${esc(m.id)}">📄 Transcript</button><span class="sub" style="align-self:center">${state.all.tasks.filter(t => t.meeting === m.id).length} tasks · ${m.people.length} participants</span></div>
+        <div class="people">${m.people.map(p => { const f = state.all.people.some(x => x.meeting === m.id && clean(x.name).toUpperCase() === clean(p).toUpperCase() && isFac(x.role)); return `<span class="avatar-wrap" data-tip="${esc(title(p))}${f ? ' · 🚩 Facilitator' : ''}">${avatar(p)}${f ? '<span class="mini-flag">🚩</span>' : ''}</span>`; }).join('')}</div>
+        <div class="m-actions">${m.id === state.meeting ? '<span class="meet-chip">📍 Currently selected</span><button class="btn btn-ghost btn-sm" data-meeting="ALL">Show all meetings</button>' : `<button class="btn btn-primary btn-sm" data-meeting="${esc(m.id)}">📊 View this meeting</button>`}<button class="btn btn-ghost btn-sm" data-transcript="${esc(m.id)}">📄 Transcript</button>${m.id !== MANUAL && m.id !== LEGACY ? `<button class="btn btn-ghost btn-sm" data-sendsummary="${esc(m.id)}" data-tip="Email + Slack #general with a short summary for the whole team">📤 Send summary to team</button>` : ''}<span class="sub" style="align-self:center">${state.all.tasks.filter(t => t.meeting === m.id).length} tasks · ${m.people.length} participants</span></div>
       </div></div>`;
   }).join('') || '<div class="card empty"><span class="e-ico">🎙️</span>No meetings analyzed yet.</div>';
 }
@@ -1037,10 +1099,11 @@ function renderTeam() {
   $('#teamGrid').innerHTML = state.people.map((p, i) => {
     const mine = state.tasks.filter(t => t.owner.toUpperCase() === p.name.toUpperCase()), c = counts(mine), pct = c.total ? Math.round(c.Completed / c.total * 100) : 0;
     return `<div class="card team-card" style="animation:pop .4s ${i * 80}ms both">
-      <div class="team-head">${avatar(p.name, 'lg')}<div><h3>${esc(title(p.name))}</h3><div class="sub">${esc(isMissing(p.role) ? 'Team member' : p.role)}</div></div></div>
-      <div class="team-stats"><div><b>${c.total}</b><small>Tasks</small></div><div><b>${c.Completed}</b><small>Done</small></div><div><b>${c.total - c.Completed}</b><small>Open</small></div></div>
+      <div class="team-head">${avatar(p.name, 'lg')}<div><h3>${esc(title(p.name))}${isFac(p.role) ? '<span class="fac-flag" data-tip="Led this meeting">🚩 Facilitator</span>' : ''}</h3><div class="sub">${esc(isMissing(roleText(p.role)) || !roleText(p.role) ? 'Team member' : roleText(p.role))}</div></div></div>
+      ${(() => { const key = p.name.toUpperCase(), f = state.teamFilter[key] || 'all'; return `<div class="team-stats"><button type="button" class="${f === 'all' ? 'on' : ''}" data-tfilter="all" data-person="${esc(key)}"><b>${c.total}</b><small>Tasks</small></button><button type="button" class="${f === 'done' ? 'on' : ''}" data-tfilter="done" data-person="${esc(key)}"><b>${c.Completed}</b><small>Done</small></button><button type="button" class="${f === 'open' ? 'on' : ''}" data-tfilter="open" data-person="${esc(key)}"><b>${c.total - c.Completed}</b><small>Open</small></button></div>
       <div class="progress" data-tip="${pct}% completed"><i style="width:0" data-w="${pct}"></i></div>
-      <p class="contrib">${esc(p.contrib || '')}</p>
+      <div class="tlist">${mine.filter(t => f === 'all' || (f === 'done' ? t.status === 'Completed' : t.status !== 'Completed')).map(t => `<button type="button" class="titem ${t.status === 'Completed' ? 'done' : ''}" data-taskopen="${t.id}" data-tip="Open task details"><span class="ti-ico">${STATUSES.find(s => s.key === t.status).icon}</span><span>${esc(t.task)}</span></button>`).join('')}</div>`; })()}
+      ${p.contrib ? `<div class="contrib-label">🗣️ In the meeting</div><p class="contrib">${esc(p.contrib)}</p>` : ''}
       <div class="team-actions">
         <button class="btn btn-ghost btn-sm" data-remind="slack" data-who="${esc(p.name)}">💬 Slack reminder</button>
         <button class="btn btn-ghost btn-sm" data-remind="email" data-who="${esc(p.name)}" ${p.email ? '' : 'data-tip="No email in the Participants sheet — it will go to the default address"'}>✉️ Email reminder</button>
@@ -1050,7 +1113,7 @@ function renderTeam() {
     if (!ua.length) return '';
     return `<div class="card team-card unassigned" style="animation:pop .4s both">
       <div class="team-head">${avatar(UA, 'lg')}<div><h3>Unassigned</h3><div class="sub">${ua.length} task${ua.length === 1 ? '' : 's'} without an owner</div></div></div>
-      <div class="ua-list">${ua.map(t => `<div class="ua-item"><span>${esc(t.task)}</span><button class="btn btn-primary btn-sm" data-assign="${t.id}">🙋 Assign</button></div>`).join('')}</div></div>`;
+      <div class="ua-list">${ua.map(t => `<div class="ua-item"><span data-taskopen="${t.id}" style="cursor:pointer" data-tip="Open task details">${esc(t.task)}</span><button class="btn btn-primary btn-sm" data-assign="${t.id}">🙋 Assign</button></div>`).join('')}</div></div>`;
   })() || (state.people.length ? '' : '<div class="card empty">No participants yet.</div>');
   setTimeout(() => $$('#teamGrid .progress i').forEach(b => b.style.width = b.dataset.w + '%'), 80);
   const qOrder = { 'Blocked': 0, 'Open': 1, 'In Progress': 2, 'Answered': 3 };
@@ -1092,7 +1155,7 @@ function openModal(t = null) {
 function closeModal() { $('#taskModal').classList.remove('show'); editing = null; }
 $('#mCancel').onclick = closeModal;
 $('#taskModal').addEventListener('click', e => { if (e.target.id === 'taskModal') closeModal(); });
-document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal(); closeAssign(); closeQuestion(); $('#resetModal').classList.remove('show'); $('#txModal').classList.remove('show'); } });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal(); closeAssign(); closeQuestion(); $('#resetModal').classList.remove('show'); $('#txModal').classList.remove('show'); $('#tdModal').classList.remove('show'); } });
 $('#taskForm').addEventListener('submit', async e => {
   e.preventDefault();
   const btn = $('#mSave'); btn.disabled = true; btn.textContent = 'Saving…';
@@ -1333,7 +1396,58 @@ document.addEventListener('click', async e => {
   const qq = e.target.closest('[data-question]'); if (qq) return openQuestion(state.all.questions.find(x => x.id === +qq.dataset.question));
   const tb = e.target.closest('[data-transcript]'); if (tb) return openTranscript(tb.dataset.transcript);
   const qb = e.target.closest('[data-q]'); if (qb) { $('#askIn').value = qb.dataset.q; return askSend(); }
+  const tf = e.target.closest('[data-tfilter]'); if (tf) { state.teamFilter[tf.dataset.person] = tf.dataset.tfilter; sfx.click(); return renderTeam(); }
+  const to = e.target.closest('[data-taskopen]'); if (to) return openTask(+to.dataset.taskopen);
+  const ss = e.target.closest('[data-sendsummary]'); if (ss) return sendSummary(ss.dataset.sendsummary, ss);
 });
+/* ---------- task detail ---------- */
+let tdTask = null;
+function openTask(id) {
+  const t = state.all.tasks.find(x => x.id === id); if (!t) return;
+  tdTask = t; sfx.pop();
+  const m = state.all.meetings.find(x => x.id === t.meeting);
+  const person = state.all.people.find(p => clean(p.name).toUpperCase() === clean(t.owner).toUpperCase() && p.meeting === t.meeting) || state.all.people.find(p => clean(p.name).toUpperCase() === clean(t.owner).toUpperCase());
+  const st = STATUSES.find(s => s.key === t.status);
+  $('#tdKicker').textContent = `${st.icon} ${t.status}${m ? ' · 🎙️ ' + title(m.title) : ''}`;
+  $('#tdTitle').textContent = t.task;
+  $('#tdGrid').innerHTML = `<div><small>Owner</small>${t.owner === UA ? '🙋 Unassigned' : esc(title(t.owner))}${person && isFac(person.role) ? ' <span class="fac-flag">🚩</span>' : ''}</div><div><small>Deadline</small>${isMissing(t.deadline) ? 'Not mentioned' : '📅 ' + esc(t.deadline)}</div><div><small>Priority</small>${prioBadge(t.prio)}</div><div><small>Meeting</small>${m ? esc(title(m.title)) + (m.date ? ' · ' + esc(fmtDate(m.date)) : '') : 'Added from the dashboard'}</div>`;
+  $('#tdStatus').innerHTML = STATUSES.map(s => `<button type="button" class="${s.key === t.status ? 'on' : ''}" data-tdstatus="${s.key}">${s.icon} ${s.key}</button>`).join('');
+  const first = clean(t.owner).split(' ')[0].toLowerCase();
+  const words = clean(t.task).toLowerCase().split(/\W+/).filter(w => w.length > 4);
+  const rel = state.all.risks.filter(r => r.meeting === t.meeting && (r.desc.toLowerCase().includes(first) || words.filter(w => r.desc.toLowerCase().includes(w)).length >= 2));
+  const done = t.status === 'Completed';
+  $('#tdMore').innerHTML = `<div class="td-sec">${done ? '✅ What was done' : '⏳ What is left'}</div><p class="sub" style="line-height:1.5">${done ? 'This task was marked as completed.' : t.status === 'Blocked' ? 'This task is blocked — check the blockers below and unblock it or reassign it.' : t.status === 'In Progress' ? 'Work has started; it still needs to be finished' + (isMissing(t.deadline) ? '.' : ' by ' + esc(t.deadline) + '.') : 'Not started yet' + (isMissing(t.deadline) ? '.' : ' — due ' + esc(t.deadline) + '.')}</p>
+    ${person && person.contrib ? `<div class="td-sec">🗣️ What ${esc(title(t.owner).split(' ')[0])} said in the meeting</div><p class="sub" style="line-height:1.5">${esc(person.contrib)}</p>` : ''}
+    ${rel.length ? `<div class="td-sec">⚠️ Related risks &amp; blockers</div><ul class="td-list">${rel.map(r => `<li>${/block/i.test(r.type) ? '⛔' : '⚠️'} ${esc(r.desc)}</li>`).join('')}</ul>` : ''}`;
+  $('#tdRemind').hidden = t.owner === UA;
+  $('#tdModal').classList.add('show');
+}
+$('#tdClose').onclick = () => $('#tdModal').classList.remove('show');
+$('#tdModal').addEventListener('click', e => {
+  if (e.target.id === 'tdModal') return $('#tdModal').classList.remove('show');
+  const b = e.target.closest('[data-tdstatus]'); if (b && tdTask) { changeStatus(tdTask.id, b.dataset.tdstatus, b); setTimeout(() => openTask(tdTask.id), 60); }
+});
+$('#tdEdit').onclick = () => { $('#tdModal').classList.remove('show'); openModal(tdTask); };
+$('#tdAssign').onclick = () => { $('#tdModal').classList.remove('show'); openAssign(tdTask); };
+$('#tdRemind').onclick = e => remind('slack', tdTask.owner, e.currentTarget);
+$('#tdBoard').onclick = () => {
+  $('#tdModal').classList.remove('show'); state.owner = tdTask.owner === UA ? '' : clean(tdTask.owner).toUpperCase(); go('board'); renderBoard();
+  setTimeout(() => { const c = $(`.tcard[data-id="${tdTask.id}"]`); if (c) { c.scrollIntoView({ behavior: 'smooth', block: 'center' }); c.classList.add('flash'); setTimeout(() => c.classList.remove('flash'), 3400); } }, 250);
+};
+/* ---------- manual meeting summary ---------- */
+async function sendSummary(id, btn) {
+  const m = state.all.meetings.find(x => x.id === id); if (!m) return;
+  if (!confirm(`Send a short summary of “${title(m.title)}” to the team (email + Slack #general)?`)) return;
+  btn.disabled = true; const label = btn.textContent; btn.textContent = '⏳ Sending…'; sfx.click();
+  const tasks = state.all.tasks.filter(t => t.meeting === id).map(t => ({ owner: t.owner === UA ? 'Unassigned' : title(t.owner), task: t.task, deadline: t.deadline || '', status: t.status }));
+  const people = state.all.people.filter(p => p.meeting === id).map(p => ({ name: title(p.name), role: p.role || '' }));
+  const questions = state.all.questions.filter(q => q.meeting === id && q.status !== 'Answered').map(q => q.text);
+  try {
+    await callN8n('dashboard-send-summary', { meeting_id: id, title: title(m.title), date: m.date ? fmtDate(m.date) : '', summary: m.summary || '', decisions: JSON.stringify(m.decisions), questions: JSON.stringify(questions), tasks: JSON.stringify(tasks), people: JSON.stringify(people) });
+    sfx.success(); toast('Summary sent to the team 📤 (email + Slack)', '📤', 5000);
+  } catch (e) { sfx.error(); toast('Could not send the summary: ' + e.message, '⚠️', 6000); }
+  finally { btn.disabled = false; btn.textContent = label; }
+}
 async function remind(kind, who, btn) {
   btn.disabled = true; sfx.click();
   try {
@@ -1384,8 +1498,11 @@ $('#testUrl').onclick = async () => {
   else { setConn(false, 'unreachable'); toast('Cannot reach n8n — check the tunnel URL', '⚠️', 5000); sfx.error(); }
 };
 function setAuto(sec) { clearInterval(state.timer); if (+sec) state.timer = setInterval(() => load(true), sec * 1000); }
-$('#autoRef').value = String(store.get('auto', 60)); setAuto(store.get('auto', 60));
-$('#autoRef').onchange = e => { store.set('auto', +e.target.value); setAuto(e.target.value); toast('Auto-refresh updated', '🔄'); };
+$('#autoRef').value = String(store.get('auto2', 10)); setAuto(store.get('auto2', 10));
+// refresh as soon as the tab is visible again (e.g. after tapping a Slack/email button)
+document.addEventListener('visibilitychange', () => { if (!document.hidden && state.lastSync && Date.now() - state.lastSync > 4000) load(true); });
+addEventListener('focus', () => { if (state.lastSync && Date.now() - state.lastSync > 4000) load(true); });
+$('#autoRef').onchange = e => { store.set('auto2', +e.target.value); setAuto(e.target.value); toast('Auto-refresh updated', '🔄'); };
 
 const h = new Date().getHours();
 $('#greeting').textContent = h < 12 ? 'Good morning' : h < 19 ? 'Good afternoon' : 'Good evening';
