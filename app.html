@@ -147,7 +147,7 @@ main{padding:28px 36px 60px;min-width:0}
 .legend-row .ic{width:18px;text-align:center}
 
 .bars{display:flex;flex-direction:column;gap:14px}
-.bar-row{display:grid;grid-template-columns:110px 1fr 34px;align-items:center;gap:12px;font-size:13.5px}
+.bar-row{display:grid;grid-template-columns:130px 1fr 34px;align-items:center;gap:12px;font-size:13.5px}
 .bar-row .who{display:flex;align-items:center;gap:8px;font-weight:700;min-width:0}
 .bar-row .who span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .bar-track{height:16px;display:flex;gap:2px;border-radius:6px;overflow:hidden;background:var(--surface-2)}
@@ -296,6 +296,16 @@ table.data{width:100%;border-collapse:collapse;font-size:13px;margin-top:12px}
 table.data th,table.data td{text-align:left;padding:8px;border-bottom:1px solid var(--border)}
 table.data th{color:var(--text-3);font-size:11.5px;text-transform:uppercase;letter-spacing:.05em}
 
+.meet-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:-8px 0 22px}
+.meet-select{position:relative;display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:6px 8px 6px 14px;box-shadow:var(--shadow);min-width:0;max-width:100%}
+.meet-select label{font-size:12px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;white-space:nowrap}
+.meet-select select{border:0;background:var(--surface-2);border-radius:10px;padding:9px 12px;font-weight:700;font-size:14px;outline:none;max-width:420px;min-width:0;text-overflow:ellipsis}
+.meet-chip{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:99px;background:var(--brand-soft);color:var(--brand);font-size:12.5px;font-weight:700}
+.btn-danger{background:var(--critical-soft);color:var(--critical);border:1px solid transparent}
+.btn-danger:hover{border-color:var(--critical)}
+.m-actions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.meeting.selected{outline:3px solid var(--brand);outline-offset:-3px}
+[hidden]{display:none!important}
 .mobile-nav{display:none}
 @media (max-width: 1100px){
   .kpis{grid-template-columns:repeat(2,1fr)}
@@ -321,6 +331,7 @@ table.data th{color:var(--text-3);font-size:11.5px;text-transform:uppercase;lett
   .mobile-nav button.active{color:var(--brand);background:var(--brand-soft)}
   .top-actions .btn-primary .lbl{display:none}
   .toasts{left:16px;right:16px;bottom:84px;align-items:stretch}
+  .meet-select{width:100%}.meet-select select{flex:1;max-width:none}
 }
 @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -367,6 +378,13 @@ table.data th{color:var(--text-3);font-size:11.5px;text-transform:uppercase;lett
       </div>
     </div>
 
+    <div class="meet-bar">
+      <div class="meet-select"><label for="meetingSel">🎙️ Meeting</label><select id="meetingSel" aria-label="Choose which meeting the dashboard shows"></select></div>
+      <span class="meet-chip" id="meetScope">All meetings</span>
+      <button class="btn btn-ghost btn-sm" id="historyBtn" hidden>🕘 Show history</button>
+      <button class="btn btn-danger btn-sm" id="resetBtn" style="margin-left:auto">🧹 Reset dashboard</button>
+    </div>
+
     <!-- OVERVIEW -->
     <section class="page active" id="page-overview">
       <div class="hero">
@@ -390,7 +408,7 @@ table.data th{color:var(--text-3);font-size:11.5px;text-transform:uppercase;lett
 
       <div class="grid-2">
         <div class="card">
-          <div class="card-head"><div><h3>Task status</h3><div class="sub">Every action item across all meetings</div></div><button class="table-toggle" data-table="statusTable">Table view</button></div>
+          <div class="card-head"><div><h3>Task status</h3><div class="sub" id="statusSub">Every action item across all meetings</div></div><button class="table-toggle" data-table="statusTable">Table view</button></div>
           <div class="donut-wrap">
             <div class="donut"><svg viewBox="0 0 120 120" id="donutSvg"></svg><div class="center"><div><b id="donutTotal">0</b><small>tasks</small></div></div></div>
             <div class="legend" id="donutLegend"></div>
@@ -510,8 +528,18 @@ table.data th{color:var(--text-3);font-size:11.5px;text-transform:uppercase;lett
       <div class="field"><label for="fPrio">Priority</label><select id="fPrio"><option>High</option><option selected>Medium</option><option>Low</option></select></div>
       <div class="field"><label for="fStatus">Status</label><select id="fStatus"><option>Pending</option><option>In Progress</option><option>Completed</option><option>Blocked</option></select></div>
     </div>
+    <div class="field" id="fMeetingWrap"><label for="fMeeting">Meeting</label><select id="fMeeting"></select></div>
     <div class="modal-actions"><button type="button" class="btn btn-ghost" id="mCancel">Cancel</button><button type="submit" class="btn btn-primary" id="mSave">Save task</button></div>
   </form>
+</div>
+
+<div class="overlay" id="resetModal" role="dialog" aria-modal="true" aria-labelledby="rTitle">
+  <div class="modal">
+    <h3 id="rTitle">🧹 Reset the dashboard?</h3>
+    <div class="sub">The dashboard will start clean and only show meetings analyzed from now on.</div>
+    <div class="note">Nothing is deleted: every row stays in Google Sheets. Use <b>Show history</b> at any time to bring the previous meetings back.</div>
+    <div class="modal-actions"><button type="button" class="btn btn-ghost" id="rCancel">Cancel</button><button type="button" class="btn btn-primary" id="rOk">Yes, reset</button></div>
+  </div>
 </div>
 
 <div class="toasts" id="toasts" aria-live="polite"></div>
@@ -535,13 +563,15 @@ const store = {
   get(k, d) { try { const v = localStorage.getItem('mm_' + k); return v === null ? d : JSON.parse(v); } catch { return d; } },
   set(k, v) { try { localStorage.setItem('mm_' + k, JSON.stringify(v)); } catch {} }
 };
-const state = { tasks: [], people: [], meetings: [], risks: [], owner: '', q: '', prio: '', base: store.get('base', DEFAULT_BASE), sound: store.get('sound', true), timer: null, lastSync: null };
+const state = { tasks: [], people: [], meetings: [], risks: [], all: { tasks: [], people: [], meetings: [], risks: [] }, meeting: store.get('meeting', 'ALL'), hidden: store.get('hidden', []), owner: '', q: '', prio: '', base: store.get('base', DEFAULT_BASE), sound: store.get('sound', true), timer: null, lastSync: null };
+const LEGACY = 'LEGACY', MANUAL = 'MANUAL';
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const clean = s => String(s ?? '').replace(/ /g, ' ').trim();
 const title = s => clean(s).toLowerCase().replace(/(^|\s|-)\S/g, m => m.toUpperCase());
+const shortName = s => { const w = title(s).split(' ').filter(Boolean); return w.length > 1 ? `${w[0]} ${w[w.length - 1][0]}.` : (w[0] || ''); };
 
 /* ---------- CSV ---------- */
 function parseCSV(text) {
@@ -675,16 +705,25 @@ async function load(silent = false) {
   const btn = $('#refreshBtn'); btn.classList.add('spin');
   try {
     const [ex, pa, ac, ri] = await Promise.all([fetchTab(GIDS.executive), fetchTab(GIDS.participants), fetchTab(GIDS.actions), fetchTab(GIDS.risks)]);
-    state.people = pa.filter(p => p.Name).map(p => ({ name: p.Name, role: p.Role, contrib: p['Key Contributions'], email: p.Email || p.email || '' }));
-    state.people.forEach(p => personColor(p.name));
-    state.tasks = ac.filter(t => t.Task).map((t, i) => ({ id: i, task: t.Task, owner: t.Responsible || 'Not assigned', deadline: t.Deadline, prioRaw: t.Priority, prio: normPrio(t.Priority), status: normStatus(t.Status) }));
-    state.tasks.forEach(t => personColor(t.owner));
-    state.meetings = ex.filter(m => m['Meeting Title'] || m['Executive Summary']).map(m => ({
-      title: m['Meeting Title'] || 'Untitled meeting', date: m.Date, summary: m['Executive Summary'],
-      people: (m.Participants || '').split(/,|\|/).map(clean).filter(Boolean),
-      decisions: splitList(m['Key Decisions']), questions: splitList(m['Open Questions'])
-    })).reverse();
-    state.risks = ri.filter(r => r.Description).map(r => ({ type: r.Type || 'Risk', desc: r.Description, impact: r.Impact || '', mitigation: r.Mitigation || '' }));
+    const mid = r => clean(r['Meeting ID']) || LEGACY;
+    const A = state.all;
+    A.people = pa.filter(p => p.Name).map(p => ({ name: p.Name, role: p.Role, contrib: p['Key Contributions'], email: p.Email || p.email || '', meeting: mid(p) }));
+    A.tasks = ac.filter(t => t.Task).map((t, i) => ({ id: i, task: t.Task, owner: t.Responsible || 'Not assigned', deadline: t.Deadline, prioRaw: t.Priority, prio: normPrio(t.Priority), status: normStatus(t.Status), meeting: mid(t) }));
+    A.risks = ri.filter(r => r.Description && !/^n\/a$/i.test(r.Description)).map(r => ({ type: r.Type || 'Risk', desc: r.Description, impact: r.Impact || '', mitigation: r.Mitigation || '', meeting: mid(r) }));
+    const byId = new Map();
+    ex.filter(m => m['Meeting Title'] || m['Executive Summary']).forEach(m => {
+      const id = mid(m), prev = byId.get(id);
+      const people = (m.Participants || '').split(/,|\|/).map(clean).filter(Boolean);
+      const rec = { id, title: m['Meeting Title'] || 'Untitled meeting', date: m.Date, summary: m['Executive Summary'], people, decisions: splitList(m['Key Decisions']), questions: splitList(m['Open Questions']) };
+      if (prev && id === LEGACY) { prev.people = [...new Set([...prev.people, ...people])]; prev.decisions.push(...rec.decisions); prev.questions.push(...rec.questions); if (!prev.title || /untitled/i.test(prev.title)) Object.assign(prev, { title: rec.title, date: rec.date, summary: rec.summary }); }
+      else byId.set(id, rec);
+    });
+    const known = new Set(byId.keys());
+    [...A.tasks, ...A.people, ...A.risks].forEach(r => { if (!known.has(r.meeting)) { known.add(r.meeting); byId.set(r.meeting, { id: r.meeting, title: r.meeting === MANUAL ? 'Tasks added from the dashboard' : r.meeting === LEGACY ? 'Earlier meetings' : r.meeting, date: '', summary: '', people: [], decisions: [], questions: [] }); } });
+    byId.forEach(m => { if (!m.people.length) m.people = [...new Set(A.people.filter(p => p.meeting === m.id).map(p => p.name))]; });
+    A.meetings = [...byId.values()].sort((a, b) => (Date.parse(b.date) || 0) - (Date.parse(a.date) || 0) || (b.id > a.id ? 1 : -1));
+    [...A.people.map(p => p.name), ...A.tasks.map(t => t.owner)].forEach(n => personColor(n));
+    if (state.meeting !== 'ALL' && !byId.has(state.meeting)) state.meeting = 'ALL';
     state.lastSync = new Date();
     $('#syncText').textContent = 'Synced ' + state.lastSync.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     render();
@@ -700,7 +739,34 @@ function splitList(s) {
 }
 
 /* ---------- render ---------- */
+function computeView() {
+  const A = state.all, hidden = new Set(state.hidden);
+  const visible = m => !hidden.has(m) && (state.meeting === 'ALL' || m === state.meeting);
+  state.meetings = A.meetings.filter(m => visible(m.id));
+  state.tasks = A.tasks.filter(t => visible(t.meeting));
+  state.risks = A.risks.filter(r => visible(r.meeting));
+  const merged = new Map();
+  A.people.filter(p => visible(p.meeting)).forEach(p => {
+    const k = clean(p.name).toUpperCase(), cur = merged.get(k);
+    if (!cur) merged.set(k, { ...p });
+    else { if (isMissing(cur.role) && !isMissing(p.role)) cur.role = p.role; if (p.contrib) cur.contrib = p.contrib; if (p.email) cur.email = p.email; }
+  });
+  // owners of visible tasks always appear on the team page
+  state.tasks.forEach(t => { const k = clean(t.owner).toUpperCase(); if (!isMissing(t.owner) && !merged.has(k)) merged.set(k, { name: t.owner, role: '', contrib: '', email: '' }); });
+  state.people = [...merged.values()];
+}
+function fillMeetings() {
+  const hidden = new Set(state.hidden), list = state.all.meetings.filter(m => !hidden.has(m.id));
+  const label = m => `${title(m.title)}${m.date ? ' · ' + fmtDate(m.date) : ''}`;
+  $('#meetingSel').innerHTML = `<option value="ALL">✨ All meetings (${list.length})</option>` + list.map(m => `<option value="${esc(m.id)}">${esc(label(m))}</option>`).join('');
+  $('#meetingSel').value = state.meeting;
+  const cur = state.all.meetings.find(m => m.id === state.meeting);
+  $('#meetScope').textContent = cur ? `Showing: ${title(cur.title)}` : `Showing all ${list.length} meeting${list.length === 1 ? '' : 's'}`;
+  $('#historyBtn').hidden = !state.hidden.length;
+  $('#fMeeting').innerHTML = `<option value="${MANUAL}">No specific meeting</option>` + list.filter(m => m.id !== MANUAL).map(m => `<option value="${esc(m.id)}">${esc(label(m))}</option>`).join('');
+}
 function render() {
+  computeView(); fillMeetings();
   renderOverview(); renderBoard(); renderMeetings(); renderTeam(); fillOwners();
   $('#navCount').textContent = state.tasks.filter(t => t.status !== 'Completed').length;
 }
@@ -722,7 +788,9 @@ function renderOverview() {
   $('#kDoneFoot').textContent = `${pct}% completion rate`;
   const open = c.total - c.Completed;
   $('#heroTitle').textContent = pct === 100 && c.total ? 'Everything is done — amazing work! 🎉' : pct >= 50 ? `${pct}% done — the team is on fire 🔥` : `${open} open task${open === 1 ? '' : 's'} to go 💪`;
-  $('#heroText').textContent = `${state.people.length} teammates · ${state.meetings.length} meeting${state.meetings.length === 1 ? '' : 's'} analyzed · ${state.risks.length} risk${state.risks.length === 1 ? '' : 's'} tracked`;
+  const sel = state.all.meetings.find(m => m.id === state.meeting);
+  $('#heroText').textContent = (sel ? `${title(sel.title)}${sel.date ? ' · ' + fmtDate(sel.date) : ''} — ` : '') + `${state.people.length} participant${state.people.length === 1 ? '' : 's'} · ${state.meetings.length} meeting${state.meetings.length === 1 ? '' : 's'} · ${state.risks.length} risk${state.risks.length === 1 ? '' : 's'} tracked`;
+  if (!state.all.meetings.length || (!state.meetings.length && state.hidden.length)) { $('#heroTitle').textContent = 'A fresh start ✨'; $('#heroText').textContent = 'Analyze a new meeting and its tasks will show up here.'; }
   $('#heroChips').innerHTML = STATUSES.map(s => `<span class="chip">${s.icon} ${c[s.key]} ${s.key}</span>`).join('');
   $('#heroPct').textContent = pct + '%';
   $('#heroArc').style.strokeDashoffset = 314.16 * (1 - pct / 100);
@@ -736,6 +804,7 @@ function renderOverview() {
   });
   $('#donutSvg').innerHTML = `<circle cx="60" cy="60" r="${R}" fill="none" stroke="var(--surface-2)" stroke-width="20"/>` + segs.join('');
   $('#donutTotal').textContent = c.total;
+  $('#statusSub').textContent = state.meeting === 'ALL' ? 'Every action item across all meetings' : 'Action items from this meeting';
   $('#donutLegend').innerHTML = STATUSES.map(s => `<div class="legend-row"><span class="sw" style="background:${s.color}"></span><span class="ic">${s.icon}</span>${s.key}<span class="num">${c[s.key]}</span></div>`).join('');
   $('#statusTable').innerHTML = `<table class="data"><thead><tr><th>Status</th><th>Tasks</th><th>Share</th></tr></thead><tbody>${STATUSES.map(s => `<tr><td>${s.icon} ${s.key}</td><td>${c[s.key]}</td><td>${c.total ? Math.round(c[s.key] / c.total * 100) : 0}%</td></tr>`).join('')}</tbody></table>`;
 
@@ -745,7 +814,7 @@ function renderOverview() {
   $('#workBars').innerHTML = owners.map(o => {
     const mine = state.tasks.filter(t => t.owner.toUpperCase() === o), cc = counts(mine);
     const segsH = STATUSES.filter(s => cc[s.key]).map(s => `<div class="bar-seg" style="width:0;background:${s.color}" data-w="${cc[s.key] / max * 100}" data-tip="${esc(title(o))} · ${s.icon} ${s.key}: ${cc[s.key]}"></div>`).join('');
-    return `<div class="bar-row"><div class="who">${avatar(o)}<span>${esc(title(o))}</span></div><div class="bar-track">${segsH}</div><div class="tot">${mine.length}</div></div>`;
+    return `<div class="bar-row"><div class="who" data-tip="${esc(title(o))}">${avatar(o)}<span>${esc(shortName(o))}</span></div><div class="bar-track">${segsH}</div><div class="tot">${mine.length}</div></div>`;
   }).join('') || '<div class="empty"><span class="e-ico">🌤️</span>No tasks yet</div>';
   requestAnimationFrame(() => setTimeout(() => $$('#workBars .bar-seg').forEach(b => b.style.width = b.dataset.w + '%'), 50));
   $('#workLegend').innerHTML = STATUSES.map(s => `<span><i style="background:${s.color}"></i>${s.icon} ${s.key}</span>`).join('');
@@ -793,7 +862,7 @@ function cardHTML(t, i) {
       </span></div></article>`;
 }
 async function changeStatus(id, newStatus, el) {
-  const t = state.tasks.find(x => x.id === +id); if (!t || t.status === newStatus) return;
+  const t = state.all.tasks.find(x => x.id === +id); if (!t || t.status === newStatus) return;
   const prev = t.status; t.status = newStatus; render();
   const card = $(`.tcard[data-id="${id}"]`); card && card.classList.add('saving');
   sfx.whoosh();
@@ -816,7 +885,7 @@ document.addEventListener('drop', e => { const col = e.target.closest?.('.col');
 function renderMeetings() {
   $('#meetingsList').innerHTML = state.meetings.map((m, i) => {
     const t = Date.parse(m.date), d = isNaN(t) ? null : new Date(t + 12 * 3600e3);
-    return `<div class="card meeting" style="animation-delay:${i * 80}ms">
+    return `<div class="card meeting ${m.id === state.meeting ? 'selected' : ''}" style="animation-delay:${i * 80}ms">
       <div class="m-date">${d ? `<b>${d.getDate()}</b><small>${d.toLocaleDateString(undefined, { month: 'short' })}</small>` : '<b>🎙️</b>'}</div>
       <div class="m-body"><h3>${esc(title(m.title))}</h3><div class="sub">${fmtDate(m.date)}</div>
         <p class="summary">${esc(m.summary || 'No summary recorded.')}</p>
@@ -825,6 +894,7 @@ function renderMeetings() {
           <div class="m-box"><h4>❓ Open questions</h4>${m.questions.length ? `<ul>${m.questions.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '<span class="sub">No open questions 🎉</span>'}</div>
         </div>
         <div class="people">${m.people.map(p => `<span data-tip="${esc(title(p))}">${avatar(p)}</span>`).join('')}</div>
+        <div class="m-actions">${m.id === state.meeting ? '<span class="meet-chip">📍 Currently selected</span><button class="btn btn-ghost btn-sm" data-meeting="ALL">Show all meetings</button>' : `<button class="btn btn-primary btn-sm" data-meeting="${esc(m.id)}">📊 View this meeting</button>`}<span class="sub" style="align-self:center">${state.all.tasks.filter(t => t.meeting === m.id).length} tasks · ${m.people.length} participants</span></div>
       </div></div>`;
   }).join('') || '<div class="card empty"><span class="e-ico">🎙️</span>No meetings analyzed yet.</div>';
 }
@@ -855,7 +925,7 @@ function renderTeam() {
 /* ---------- modal ---------- */
 let editing = null;
 function fillOwners() {
-  const names = [...new Set([...state.people.map(p => p.name), ...state.tasks.map(t => t.owner)].map(n => n.toUpperCase()))].filter(n => !isMissing(n));
+  const names = [...new Set([...state.people.map(p => p.name), ...state.all.people.map(p => p.name), ...state.tasks.map(t => t.owner)].map(n => clean(n).toUpperCase()))].filter(n => !isMissing(n));
   $('#fOwner').innerHTML = names.map(n => `<option value="${esc(n)}">${esc(title(n))}</option>`).join('');
 }
 function openModal(t = null) {
@@ -869,20 +939,23 @@ function openModal(t = null) {
   $('#fDeadline').value = t && !isMissing(t.deadline) ? t.deadline : '';
   $('#fPrio').value = t && t.prio !== 'None' ? t.prio : 'Medium';
   $('#fStatus').value = t ? t.status : 'Pending';
+  $('#fMeetingWrap').hidden = !!t;
+  $('#fMeeting').value = state.meeting !== 'ALL' && state.meeting !== LEGACY ? state.meeting : MANUAL;
   $('#taskModal').classList.add('show'); setTimeout(() => (t ? $('#fDeadline') : $('#fTask')).focus(), 50);
 }
 function closeModal() { $('#taskModal').classList.remove('show'); editing = null; }
 $('#mCancel').onclick = closeModal;
 $('#taskModal').addEventListener('click', e => { if (e.target.id === 'taskModal') closeModal(); });
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal(); $('#resetModal').classList.remove('show'); } });
 $('#taskForm').addEventListener('submit', async e => {
   e.preventDefault();
   const btn = $('#mSave'); btn.disabled = true; btn.textContent = 'Saving…';
   const data = { task: $('#fTask').value.trim(), responsible: editing ? editing.owner : $('#fOwner').value, deadline: $('#fDeadline').value.trim() || 'Not mentioned', priority: $('#fPrio').value, status: $('#fStatus').value };
+  if (!editing) data.meeting_id = $('#fMeeting').value || MANUAL;
   try {
     await callN8n(editing ? 'dashboard-edit-task' : 'dashboard-create-task', data);
     if (editing) Object.assign(editing, { deadline: data.deadline, prio: data.priority, prioRaw: data.priority, status: data.status });
-    else state.tasks.push({ id: state.tasks.length ? Math.max(...state.tasks.map(t => t.id)) + 1 : 0, task: data.task, owner: data.responsible, deadline: data.deadline, prio: data.priority, prioRaw: data.priority, status: data.status });
+    else state.all.tasks.push({ id: state.all.tasks.length ? Math.max(...state.all.tasks.map(t => t.id)) + 1 : 0, task: data.task, owner: data.responsible, deadline: data.deadline, prio: data.priority, prioRaw: data.priority, status: data.status, meeting: data.meeting_id });
     render(); closeModal(); sfx.success(); confetti(innerWidth / 2, innerHeight / 2, 70);
     toast(editing ? 'Task updated' : 'Task created and saved to Sheets', '💾');
     setTimeout(() => load(true), 4000);
@@ -907,14 +980,16 @@ $('#analyzeBtn').onclick = async () => {
     await callN8n('dashboard-transcript', { transcript: text });
     steps[0].className = 'step done'; steps[1].classList.add('run'); sfx.success();
     toast('Transcript received! Gemini is analyzing it…', '🧠', 4500);
-    const before = state.tasks.length; let tries = 0;
+    const beforeIds = new Set(state.all.meetings.map(m => m.id)); const before = state.all.tasks.length; let tries = 0;
     const tick = async () => {
       tries++;
       if (tries === 2) { steps[1].className = 'step done'; steps[2].classList.add('run'); }
       await load(true);
-      if (state.tasks.length > before || tries >= 12) {
+      const fresh = state.all.meetings.find(m => !beforeIds.has(m.id) && m.id !== MANUAL && m.id !== LEGACY);
+      if (fresh || state.all.tasks.length > before || tries >= 12) {
         steps.forEach(s => s.className = 'step done');
-        if (state.tasks.length > before) { confetti(); sfx.success(); toast(`${state.tasks.length - before} new task${state.tasks.length - before === 1 ? '' : 's'} extracted!`, '🎉', 5000); ta.value = ''; ta.dispatchEvent(new Event('input')); }
+        if (fresh) { state.meeting = fresh.id; store.set('meeting', fresh.id); render(); }
+        if (fresh || state.all.tasks.length > before) { confetti(); sfx.success(); toast(fresh ? `“${title(fresh.title)}” analyzed — ${state.all.tasks.filter(t => t.meeting === fresh.id).length} tasks, ${fresh.people.length} participants 🎉` : 'New tasks extracted!', '🎉', 6000); ta.value = ''; ta.dispatchEvent(new Event('input')); if (fresh) setTimeout(() => go('overview'), 1200); }
         else toast('Still processing — check the board in a minute', '⏳', 5000);
         btn.disabled = false; btn.textContent = '🚀 Analyze with MeetMind'; return;
       }
@@ -938,10 +1013,11 @@ document.addEventListener('click', async e => {
   const nav = e.target.closest('[data-page]'); if (nav) return go(nav.dataset.page);
   const g = e.target.closest('[data-go]'); if (g) return go(g.dataset.go);
   const tt = e.target.closest('[data-table]'); if (tt) { const el = $('#' + tt.dataset.table); el.hidden = !el.hidden; tt.textContent = el.hidden ? 'Table view' : 'Hide table'; return; }
+  const mb = e.target.closest('[data-meeting]'); if (mb) { setMeeting(mb.dataset.meeting); if (mb.dataset.meeting !== 'ALL') go('overview'); return; }
   const pill = e.target.closest('[data-owner]'); if (pill) { state.owner = pill.dataset.owner; sfx.click(); return renderBoard(); }
   const act = e.target.closest('[data-act]');
   if (act) {
-    const t = state.tasks.find(x => x.id === +act.closest('.tcard').dataset.id);
+    const t = state.all.tasks.find(x => x.id === +act.closest('.tcard').dataset.id);
     if (act.dataset.act === 'done') return changeStatus(t.id, 'Completed', act);
     if (act.dataset.act === 'edit') return openModal(t);
     if (act.dataset.act === 'slack') return remind('slack', t.owner, act);
@@ -956,6 +1032,17 @@ async function remind(kind, who, btn) {
   } catch (e) { sfx.error(); toast('Reminder failed: ' + e.message, '⚠️', 5000); }
   finally { btn.disabled = false; }
 }
+function setMeeting(id) { state.meeting = id; state.owner = ''; store.set('meeting', id); sfx.whoosh(); render(); }
+$('#meetingSel').addEventListener('change', e => setMeeting(e.target.value));
+$('#resetBtn').onclick = () => { sfx.click(); $('#resetModal').classList.add('show'); };
+$('#rCancel').onclick = () => $('#resetModal').classList.remove('show');
+$('#resetModal').addEventListener('click', e => { if (e.target.id === 'resetModal') $('#resetModal').classList.remove('show'); });
+$('#rOk').onclick = () => {
+  state.hidden = [...new Set([...state.hidden, ...state.all.meetings.map(m => m.id)])]; store.set('hidden', state.hidden);
+  state.meeting = 'ALL'; store.set('meeting', 'ALL'); $('#resetModal').classList.remove('show');
+  render(); sfx.whoosh(); toast('Dashboard reset — Google Sheets data is untouched', '🧹', 4500);
+};
+$('#historyBtn').onclick = () => { state.hidden = []; store.set('hidden', []); render(); sfx.pop(); toast('History restored', '🕘'); };
 $('#q').addEventListener('input', e => { state.q = e.target.value; renderBoard(); });
 $('#prioFilter').addEventListener('change', e => { state.prio = e.target.value; renderBoard(); });
 $('#newTaskBtn').onclick = () => openModal();
