@@ -399,7 +399,12 @@ body.locked .app,body.locked .mobile-nav,body.locked .ask-fab,body.locked .ask-p
 body.member .view-only{display:inline-flex}
 body.member :is(#newTaskBtn,#resetBtn,#historyBtn,[data-page="upload"],[data-page="settings"],.t-actions,.team-actions,[data-assign],[data-question],[data-sendsummary],#tdStatus,#tdStatusLbl,#tdEdit,#tdAssign,#tdRemind,.ua-item .btn,.pin-chip){display:none!important}
 body.member .tcard{cursor:pointer}
-body.member #repGenCard,body.collab :is(#resetBtn,[data-page="settings"]){display:none!important}
+body.member :is(#weekBtn,#tdPin,.pin-card),body.member #repGenCard,body.collab :is(#resetBtn,[data-page="settings"]){display:none!important}
+.perm-badge{background:#fef3c7;color:#92400e}
+.week-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:0 0 12px}
+.week-bar label{display:flex;gap:6px;align-items:center;font-size:13px;font-weight:700;color:var(--text-2);cursor:pointer}
+.pin-card .pin-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-top:1px solid var(--border);font-size:13.5px}
+.pin-card .pin-row:first-of-type{border-top:0}
 .role-badge.collab{background:#dcfce7;color:#166534}
 .collab-sel{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--text-2)}
 .collab-chip{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;color:var(--brand);background:var(--brand-soft);border-radius:99px;padding:4px 10px;margin:4px 0}
@@ -600,6 +605,7 @@ body.member #repGenCard,body.collab :is(#resetBtn,[data-page="settings"]){displa
         <div class="pills" id="ownerPills"></div>
         <select class="sel" id="prioFilter" aria-label="Filter by priority"><option value="">All priorities</option><option>High</option><option>Medium</option><option>Low</option><option>None</option></select>
       </div>
+      <div class="week-bar"><button class="btn btn-ghost btn-sm" id="weekBtn" data-tip="Archive the tasks of earlier meetings and start the week at zero. Permanent tasks stay until they are completed.">🧹 Start new week</button><label><input type="checkbox" id="showArch"> 🗄️ Show previous weeks</label><span class="sub" id="weekInfo"></span></div>
       <div class="board" id="board"></div>
       <p class="sub" style="margin-top:10px;color:var(--text-3);font-size:12.5px">💡 Drag a card to another column to change its status — it updates the Google Sheet through n8n.</p>
     </section>
@@ -767,6 +773,7 @@ body.member #repGenCard,body.collab :is(#resetBtn,[data-page="settings"]){displa
     <div id="tdMore"></div>
     <div class="modal-actions" style="flex-wrap:wrap">
       <button type="button" class="btn btn-ghost btn-sm" id="tdBoard">🗂️ Show on board</button>
+      <button type="button" class="btn btn-ghost btn-sm" id="tdPin">📌 Keep next week</button>
       <button type="button" class="btn btn-ghost btn-sm" id="tdEdit">✏️ Edit</button>
       <button type="button" class="btn btn-ghost btn-sm" id="tdAssign">🔁 Assign / transfer</button>
       <button type="button" class="btn btn-primary btn-sm" id="tdRemind">💬 Slack reminder</button>
@@ -817,11 +824,28 @@ const store = {
   get(k, d) { try { const v = localStorage.getItem('mm_' + k); return v === null ? d : JSON.parse(v); } catch { return d; } },
   set(k, v) { try { localStorage.setItem('mm_' + k, JSON.stringify(v)); } catch {} }
 };
-const state = { collab: false, collabFilter: store.get('collabFilter', ''), repFilter: '', all: { tasks: [], people: [], meetings: [], risks: [], questions: [], team: [], reports: [] }, tasks: [], people: [], meetings: [], risks: [], questions: [], meeting: store.get('meeting', 'ALL'), hidden: store.get('hidden', []), owner: '', q: '', prio: '', base: store.get('base', DEFAULT_BASE), sound: store.get('sound', true), timer: null, lastSync: null, teamFilter: {}, localEdits: {}, synced: false, role: null, me: '', session: null, pins: {}, pending: [], memberMeetings: null };
+const state = { showArch: false, localWeek: {}, archivedCount: 0, collab: false, collabFilter: store.get('collabFilter', ''), repFilter: '', all: { tasks: [], people: [], meetings: [], risks: [], questions: [], team: [], reports: [] }, tasks: [], people: [], meetings: [], risks: [], questions: [], meeting: store.get('meeting', 'ALL'), hidden: store.get('hidden', []), owner: '', q: '', prio: '', base: store.get('base', DEFAULT_BASE), sound: store.get('sound', true), timer: null, lastSync: null, teamFilter: {}, localEdits: {}, synced: false, role: null, me: '', session: null, pins: {}, pending: [], memberMeetings: null };
 const LEGACY = 'LEGACY', MANUAL = 'MANUAL', UA = 'UNASSIGNED';
 const canEdit = () => state.role === 'admin' || state.collab;
 const yesv = v => /^(yes|si|sí|true|1|x)$/i.test(clean(v));
 const collaborators = () => state.all.team.filter(r => yesv(r.Collaborator) && !/^(no|false|0)$/i.test(clean(r.Active || 'yes'))).map(r => clean(r.Name)).filter(Boolean);
+const mtgTime = id => { const m = String(id || '').match(/^MTG-(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/); return m ? Date.UTC(+m[1], m[2] - 1, +m[3], +m[4], +m[5], +m[6]) : NaN; };
+function weekStartOf(name) {
+  const k = clean(name).toUpperCase(); if (!k) return NaN;
+  if (state.localWeek[k] && Date.now() - state.localWeek[k].ts < 180000) return Date.parse(state.localWeek[k].at);
+  const r = state.all.team.find(x => clean(x.Name).toUpperCase() === k); return r ? Date.parse(clean(r['Week Start'])) : NaN;
+}
+function isArchived(t, mcol) {
+  const ws = weekStartOf(mcol.get(t.meeting)), ts = mtgTime(t.meeting);
+  if (isNaN(ws) || isNaN(ts) || ts >= ws) return false;
+  return !(t.perm && t.status !== 'Completed');
+}
+function applyConfig(rows) {
+  const r = rows.find(x => clean(x.Key) === 'n8n_url'), url = r ? clean(r.Value).replace(/\/+$/, '') : '';
+  if (!/^https:\/\/[a-z0-9-]+\.trycloudflare\.com$/.test(url) || url === state.base) return;
+  state.base = url; store.set('base', url); $('#baseUrl').value = url; $('#lgBase').value = url;
+  healthy(url).then(ok => setConn(ok));
+}
 const ownerOf = v => (isMissing(v) || /^(not assigned|unassigned|none|tbd)$/i.test(clean(v))) ? UA : clean(v);
 
 const $ = (s, r = document) => r.querySelector(s);
@@ -984,7 +1008,8 @@ async function load(silent = false) {
   if (state.loading) return; state.loading = true;
   const btn = $('#refreshBtn'); btn.classList.add('spin');
   try {
-    const [ex, pa, ac, ri, qs, tm, rp] = await Promise.all([fetchTab(GIDS.executive), fetchTab(GIDS.participants), fetchTab(GIDS.actions), fetchTab(GIDS.risks), fetchQuestions(), fetchNamed('Team', 'Name'), fetchNamed('Reports', 'Report ID')]);
+    const [ex, pa, ac, ri, qs, tm, rp, cf] = await Promise.all([fetchTab(GIDS.executive), fetchTab(GIDS.participants), fetchTab(GIDS.actions), fetchTab(GIDS.risks), fetchQuestions(), fetchNamed('Team', 'Name'), fetchNamed('Reports', 'Report ID'), fetchNamed('Config', 'Key')]);
+    applyConfig(cf);
     const sig = JSON.stringify([ex, pa, ac, ri, qs, tm, rp]);
     if (silent && sig === state.sig) { state.lastSync = new Date(); $('#syncText').textContent = 'Synced ' + state.lastSync.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }); return; }
     state.sig = sig;
@@ -994,7 +1019,7 @@ async function load(silent = false) {
     A.reports = rp.filter(r => r['Report ID']).map(r => ({ id: r['Report ID'], type: r.Type || 'Report', from: r['Period Start'], to: r['Period End'], collaborator: r.Collaborator || 'All team', at: r['Generated At'], by: r['Requested By'], title: r.Title || r['Report ID'], text: r.Report || '' })).sort((a, b) => clean(b.at).localeCompare(clean(a.at)));
     const before = new Map(A.tasks.map(t => [clean(t.task).toLowerCase() + '|' + clean(t.owner).toUpperCase(), t.status]));
     A.people = pa.filter(p => p.Name).map(p => ({ name: p.Name, role: p.Role, contrib: p['Key Contributions'], email: p.Email || p.email || '', meeting: mid(p) }));
-    A.tasks = ac.filter(t => t.Task).map((t, i) => ({ id: i, task: t.Task, owner: ownerOf(t.Responsible), deadline: t.Deadline, prioRaw: t.Priority, prio: normPrio(t.Priority), status: normStatus(t.Status), meeting: mid(t) }));
+    A.tasks = ac.filter(t => t.Task).map((t, i) => ({ id: i, task: t.Task, owner: ownerOf(t.Responsible), deadline: t.Deadline, prioRaw: t.Priority, prio: normPrio(t.Priority), status: normStatus(t.Status), perm: yesv(t.Permanent), meeting: mid(t) }));
     applyPending(A);
     A.risks = ri.filter(r => r.Description && !/^n\/a$/i.test(r.Description)).map(r => ({ type: r.Type || 'Risk', desc: r.Description, impact: r.Impact || '', mitigation: r.Mitigation || '', meeting: mid(r) }));
     const byId = new Map();
@@ -1049,7 +1074,10 @@ function computeView() {
   } else state.memberMeetings = null;
   const visible = m => !hidden.has(m) && (state.meeting === 'ALL' || m === state.meeting) && (!state.memberMeetings || state.memberMeetings.has(m)) && (!state.collabFilter || state.meeting !== 'ALL' || mcol.get(m) === state.collabFilter);
   state.meetings = A.meetings.filter(m => visible(m.id));
-  state.tasks = A.tasks.filter(t => visible(t.meeting));
+  const inView = A.tasks.filter(t => visible(t.meeting));
+  const arch = inView.filter(t => isArchived(t, mcol));
+  state.archivedCount = arch.length;
+  state.tasks = state.showArch ? inView : inView.filter(t => !arch.includes(t));
   state.risks = A.risks.filter(r => visible(r.meeting));
   state.questions = A.questions.filter(q => visible(q.meeting));
   const merged = new Map();
@@ -1107,6 +1135,8 @@ function render() {
   computeView(); fillMeetings();
   renderOverview(); renderBoard(); renderMeetings(); renderTeam(); renderReports(); fillOwners();
   $('#navCount').textContent = state.tasks.filter(t => t.status !== 'Completed').length;
+  const wc = weekCollab(), ws = weekStartOf(wc);
+  $('#weekInfo').textContent = (wc && !isNaN(ws) ? `Week started ${new Date(ws).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })} · ` : '') + (state.archivedCount ? `${state.archivedCount} task${state.archivedCount === 1 ? '' : 's'} from previous weeks ${state.showArch ? 'shown' : 'hidden'}` : '');
 }
 function counts(list = state.tasks) {
   const c = { total: list.length, Pending: 0, 'In Progress': 0, Blocked: 0, Completed: 0 };
@@ -1219,11 +1249,12 @@ function renderBoard() {
 function cardHTML(t, i) {
   return `<article class="tcard" draggable="true" data-id="${t.id}" style="animation-delay:${i * 40}ms" tabindex="0">
     <div class="t-title">${esc(t.task)}</div>
-    <div class="t-meta">${prioBadge(t.prio)}${isMissing(t.deadline) ? '' : `<span class="badge b-none">📅 ${esc(t.deadline)}</span>`}</div>
+    <div class="t-meta">${t.perm ? '<span class="badge perm-badge" data-tip="Permanent: stays when a new week starts, until it is completed">📌 Permanent</span>' : ''}${prioBadge(t.prio)}${isMissing(t.deadline) ? '' : `<span class="badge b-none">📅 ${esc(t.deadline)}</span>`}</div>
     <div class="t-foot">${avatar(t.owner)}<span class="grow">${esc(title(t.owner))}</span>
       <span class="t-actions">
         ${t.status !== 'Completed' ? `<button class="mini" data-act="done" data-tip="Mark as completed" aria-label="Mark completed">✅</button>` : ''}
         <button class="mini" data-act="assign" data-tip="${t.owner === UA ? 'Assign to someone' : 'Transfer to someone else'}" aria-label="Assign or transfer">${t.owner === UA ? '🙋' : '🔁'}</button>
+        <button class="mini" data-act="pin" data-tip="${t.perm ? 'Remove permanent mark' : 'Keep this task next week (permanent)'}" aria-label="Toggle permanent">${t.perm ? '📍' : '📌'}</button>
         <button class="mini" data-act="edit" data-tip="Edit task" aria-label="Edit task">✏️</button>
         ${t.owner === UA ? '' : '<button class="mini" data-act="slack" data-tip="Remind on Slack" aria-label="Remind on Slack">💬</button>'}
       </span></div></article>`;
@@ -1271,8 +1302,9 @@ function renderMeetings() {
 
 /* ---------- team & risks ---------- */
 function renderTeam() {
+  const pinCard = state.role === 'admin' && state.all.team.length ? `<div class="card pin-card" style="grid-column:1/-1"><div class="card-head"><div><h3>🔑 Access PINs</h3><div class="sub">Share each PIN privately. Collaborators sign in as “Team member” with their name and PIN.</div></div></div>${state.all.team.filter(r => !/^(no|false|0)$/i.test(clean(r.Active || 'yes'))).map(r => { const n = clean(r.Name), pin = state.pins[n.toUpperCase()]; return `<div class="pin-row">${avatar(n)}<span class="grow" style="flex:1">${esc(n)}${yesv(r.Collaborator) ? ' <span class="badge b-progress">Collaborator</span>' : ''}</span>${pin ? `<span class="pin-chip" data-pin="${pin}" data-pinfor="${esc(n)}" data-tip="Click to copy">🔑 ${pin}</span>` : '<span class="sub">…</span>'}</div>`; }).join('')}</div>` : '';
   const ordered = [...state.people].sort((a, b) => (clean(b.name).toUpperCase() === state.me) - (clean(a.name).toUpperCase() === state.me));
-  $('#teamGrid').innerHTML = ordered.map((p, i) => {
+  $('#teamGrid').innerHTML = pinCard + ordered.map((p, i) => {
     const mine = state.tasks.filter(t => t.owner.toUpperCase() === p.name.toUpperCase()), c = counts(mine), pct = c.total ? Math.round(c.Completed / c.total * 100) : 0;
     const isMe = clean(p.name).toUpperCase() === state.me, pin = state.pins[clean(p.name).toUpperCase()];
     return `<div class="card team-card ${isMe ? 'me' : ''}" style="animation:pop .4s ${i * 80}ms both">
@@ -1307,6 +1339,36 @@ function renderTeam() {
       <div class="r-meta"><span class="badge ${blocker ? 'b-blocked' : 'b-pending'}">${blocker ? '⛔ Blocker' : '⚠️ Risk'}</span>${r.impact ? `<span class="badge ${lvl === 'high' ? 'b-high' : lvl === 'low' ? 'b-low' : 'b-medium'}">Impact: ${esc(title(r.impact))}</span>` : ''}${r.mitigation && !isMissing(r.mitigation) ? `<span class="badge b-none">🛡️ ${esc(r.mitigation)}</span>` : ''}</div></div></div>`;
   }).join('') || '<div class="card empty"><span class="e-ico">🛡️</span>No risks recorded. Smooth sailing!</div>';
 }
+
+/* ---------- weekly reset & permanent tasks ---------- */
+function weekCollab() {
+  if (state.collab) return collaborators().find(n => n.toUpperCase() === state.me) || '';
+  if (state.role === 'admin' && state.collabFilter) return collaborators().find(n => n.toUpperCase() === state.collabFilter) || '';
+  return '';
+}
+async function togglePerm(t) {
+  if (!canEdit() || !t) return toast('View only — ask your admin to change it', '👀');
+  const perm = !t.perm; t.perm = perm; rememberSet(t.task, { perm }); render(); sfx.click();
+  try {
+    await callN8n('dashboard-task-flag', { task: t.task, responsible: t.owner, permanent: perm ? 'yes' : '' });
+    toast(perm ? 'Marked as permanent — it stays when a new week starts' : 'Permanent mark removed', '📌');
+  } catch (e) { t.perm = !perm; render(); sfx.error(); toast('Could not update: ' + e.message, '⚠️', 5000); }
+}
+$('#showArch').onchange = e => { state.showArch = e.target.checked; render(); };
+$('#weekBtn').onclick = async () => {
+  if (!canEdit()) return toast('View only — ask your admin to change it', '👀');
+  const who = weekCollab();
+  if (!who) return toast('Choose a collaborator in the top bar first', '👤', 5000);
+  if (!confirm(`Start a new week for ${who}?\n\nTasks from ${who}'s earlier meetings will be archived (hidden, never deleted). Tasks marked 📌 Permanent stay until they are completed.`)) return;
+  const at = new Date().toISOString(), btn = $('#weekBtn'); btn.disabled = true;
+  try {
+    await callN8n('dashboard-start-week', { collaborator: who, at });
+    state.localWeek[who.toUpperCase()] = { at, ts: Date.now() }; state.showArch = false; $('#showArch').checked = false;
+    render(); sfx.success(); confetti(innerWidth / 2, innerHeight / 3, 60); toast(`New week started for ${who} 🧹`, '🧹', 4500);
+    setTimeout(() => load(true), 5000);
+  } catch (e) { sfx.error(); toast('Could not start the week: ' + e.message, '⚠️', 5000); }
+  finally { btn.disabled = false; }
+};
 
 /* ---------- reports ---------- */
 function visibleReports(ignoreFilter = false) {
@@ -1622,6 +1684,7 @@ document.addEventListener('click', async e => {
     const t = state.all.tasks.find(x => x.id === +act.closest('.tcard').dataset.id);
     if (act.dataset.act === 'done') return changeStatus(t.id, 'Completed', act);
     if (act.dataset.act === 'edit') return openModal(t);
+    if (act.dataset.act === 'pin') return togglePerm(t);
     if (act.dataset.act === 'assign') return openAssign(t);
     if (act.dataset.act === 'slack') return remind('slack', t.owner, act);
   }
@@ -1644,7 +1707,7 @@ function applyPending(A) {
     const t = A.tasks.find(x => clean(x.task).toLowerCase() === p.task);
     if (p.type === 'new') { if (t) p.done = true; else A.tasks.push({ ...p.data, id: A.tasks.length ? Math.max(...A.tasks.map(x => x.id)) + 1 : 0 }); return; }
     if (!t) return;
-    const same = Object.entries(p.fields).every(([f, v]) => f === 'owner' ? clean(t.owner).toUpperCase() === clean(v).toUpperCase() : clean(t[f]) === clean(v));
+    const same = Object.entries(p.fields).every(([f, v]) => f === 'perm' ? !!t.perm === !!v : f === 'owner' ? clean(t.owner).toUpperCase() === clean(v).toUpperCase() : clean(t[f]) === clean(v));
     if (same) p.done = true; else Object.assign(t, p.fields);
   });
   state.pending = state.pending.filter(p => !p.done);
@@ -1659,7 +1722,7 @@ function openTask(id) {
   const st = STATUSES.find(s => s.key === t.status);
   $('#tdKicker').textContent = `${st.icon} ${t.status}${m ? ' · 🎙️ ' + title(m.title) : ''}`;
   $('#tdTitle').textContent = t.task;
-  $('#tdGrid').innerHTML = `<div><small>Owner</small>${t.owner === UA ? '🙋 Unassigned' : esc(title(t.owner))}${person && isFac(person.role) ? ' <span class="fac-flag">🚩</span>' : ''}</div><div><small>Deadline</small>${isMissing(t.deadline) ? 'Not mentioned' : '📅 ' + esc(t.deadline)}</div><div><small>Priority</small>${prioBadge(t.prio)}</div><div><small>Meeting</small>${m ? esc(title(m.title)) + (m.date ? ' · ' + esc(fmtDate(m.date)) : '') : 'Added from the dashboard'}</div>`;
+  $('#tdGrid').innerHTML = `<div><small>Owner</small>${t.owner === UA ? '🙋 Unassigned' : esc(title(t.owner))}${person && isFac(person.role) ? ' <span class="fac-flag">🚩</span>' : ''}</div><div><small>Deadline</small>${isMissing(t.deadline) ? 'Not mentioned' : '📅 ' + esc(t.deadline)}</div><div><small>Priority</small>${prioBadge(t.prio)}${t.perm ? ' <span class="badge perm-badge">📌 Permanent</span>' : ''}</div><div><small>Meeting</small>${m ? esc(title(m.title)) + (m.date ? ' · ' + esc(fmtDate(m.date)) : '') : 'Added from the dashboard'}</div>`;
   $('#tdStatus').innerHTML = STATUSES.map(s => `<button type="button" class="${s.key === t.status ? 'on' : ''}" data-tdstatus="${s.key}">${s.icon} ${s.key}</button>`).join('');
   const first = clean(t.owner).split(' ')[0].toLowerCase();
   const words = clean(t.task).toLowerCase().split(/\W+/).filter(w => w.length > 4);
@@ -1669,6 +1732,7 @@ function openTask(id) {
     ${person && person.contrib ? `<div class="td-sec">🗣️ What ${esc(title(t.owner).split(' ')[0])} said in the meeting</div><p class="sub" style="line-height:1.5">${esc(person.contrib)}</p>` : ''}
     ${rel.length ? `<div class="td-sec">⚠️ Related risks &amp; blockers</div><ul class="td-list">${rel.map(r => `<li>${/block/i.test(r.type) ? '⛔' : '⚠️'} ${esc(r.desc)}</li>`).join('')}</ul>` : ''}`;
   $('#tdRemind').hidden = t.owner === UA;
+  $('#tdPin').textContent = t.perm ? '📍 Remove permanent' : '📌 Keep next week';
   $('#tdModal').classList.add('show');
 }
 $('#tdClose').onclick = () => $('#tdModal').classList.remove('show');
@@ -1676,6 +1740,7 @@ $('#tdModal').addEventListener('click', e => {
   if (e.target.id === 'tdModal') return $('#tdModal').classList.remove('show');
   const b = e.target.closest('[data-tdstatus]'); if (b && tdTask) { changeStatus(tdTask.id, b.dataset.tdstatus, b); setTimeout(() => openTask(tdTask.id), 60); }
 });
+$('#tdPin').onclick = () => { togglePerm(tdTask); setTimeout(() => tdTask && openTask(tdTask.id), 80); };
 $('#tdEdit').onclick = () => { $('#tdModal').classList.remove('show'); openModal(tdTask); };
 $('#tdAssign').onclick = () => { $('#tdModal').classList.remove('show'); openAssign(tdTask); };
 $('#tdRemind').onclick = e => remind('slack', tdTask.owner, e.currentTarget);
@@ -1686,14 +1751,17 @@ $('#tdBoard').onclick = () => {
 /* ---------- manual meeting summary ---------- */
 async function sendSummary(id, btn) {
   const m = state.all.meetings.find(x => x.id === id); if (!m) return;
-  if (!confirm(`Send a detailed summary of “${title(m.title)}” to the team (email + Slack #general)?`)) return;
+  const rcount = (() => { const ro = new Map(state.all.team.map(r => [clean(r.Name).toUpperCase(), clean(r['CodeRoad Email'])])); return new Set([...state.all.people.filter(p => p.meeting === id).map(p => p.name), m.collaborator].map(n => ro.get(clean(n).toUpperCase())).filter(Boolean)).size; })();
+  if (!confirm(`Send a detailed summary of “${title(m.title)}”?\n\n✉️ ${rcount ? rcount + ' participant' + (rcount === 1 ? '' : 's') + ' (CodeRoad email)' : 'Team inbox (no CodeRoad emails found)'}\n💬 Slack #general`)) return;
   btn.disabled = true; const label = btn.textContent; btn.textContent = '⏳ Sending…'; sfx.click();
   const tasks = state.all.tasks.filter(t => t.meeting === id).map(t => ({ owner: t.owner === UA ? 'Unassigned' : title(t.owner), task: t.task, deadline: t.deadline || '', priority: t.prioRaw || '', status: t.status }));
   const people = state.all.people.filter(p => p.meeting === id).map(p => ({ name: title(p.name), role: p.role || '', contributions: p.contrib || '' }));
+  const roster = new Map(state.all.team.map(r => [clean(r.Name).toUpperCase(), clean(r['CodeRoad Email']).toLowerCase()]));
+  const recipients = [...new Set([...state.all.people.filter(p => p.meeting === id).map(p => p.name), m.collaborator].map(n => roster.get(clean(n).toUpperCase())).filter(e => /@coderoad\.com$/.test(e || '')))];
   const risks = state.all.risks.filter(r => r.meeting === id).map(r => `${/block/i.test(r.type) ? 'Blocker' : 'Risk'}: ${r.desc}`);
   const questions = state.all.questions.filter(q => q.meeting === id && q.status !== 'Answered').map(q => q.text);
   try {
-    await callN8n('dashboard-send-summary', { meeting_id: id, title: title(m.title), date: m.date ? fmtDate(m.date) : '', summary: m.summary || '', decisions: JSON.stringify(m.decisions), questions: JSON.stringify(questions), tasks: JSON.stringify(tasks), people: JSON.stringify(people), risks: JSON.stringify(risks), collaborator: m.collaborator || '' });
+    await callN8n('dashboard-send-summary', { meeting_id: id, title: title(m.title), date: m.date ? fmtDate(m.date) : '', summary: m.summary || '', decisions: JSON.stringify(m.decisions), questions: JSON.stringify(questions), tasks: JSON.stringify(tasks), people: JSON.stringify(people), risks: JSON.stringify(risks), collaborator: m.collaborator || '', recipients: JSON.stringify(recipients) });
     sfx.success(); toast('Summary sent to the team 📤 (email + Slack)', '📤', 5000);
   } catch (e) { sfx.error(); toast('Could not send the summary: ' + e.message, '⚠️', 6000); }
   finally { btn.disabled = false; btn.textContent = label; }
@@ -1772,7 +1840,7 @@ function applySession(sess) {
 }
 async function fetchPins() {
   if (state.role !== 'admin' || !state.session) return;
-  const names = [...new Set([...state.all.people.map(p => clean(p.name).toUpperCase()), ...state.all.tasks.map(t => clean(t.owner).toUpperCase())])].filter(n => n && n !== UA && !isMissing(n) && !state.pins[n]);
+  const names = [...new Set([...state.all.team.map(r => clean(r.Name).toUpperCase()), ...state.all.people.map(p => clean(p.name).toUpperCase()), ...state.all.tasks.map(t => clean(t.owner).toUpperCase())])].filter(n => n && n !== UA && !isMissing(n) && !state.pins[n]);
   if (!names.length) return;
   try {
     const s = state.session; const raw = await callN8n('dashboard-auth', { action: 'pins', role: s.role, name: s.name, exp: s.exp, token: s.token, names: JSON.stringify(names) });
